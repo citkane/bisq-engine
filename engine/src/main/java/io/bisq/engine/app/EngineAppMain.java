@@ -1,0 +1,113 @@
+/*
+ * This file is part of Bisq.
+ *
+ * Bisq is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * Bisq is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Bisq. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package io.bisq.engine.app;
+
+import io.bisq.common.UserThread;
+import io.bisq.common.util.Utilities;
+import io.bisq.core.app.AppOptionKeys;
+import io.bisq.core.app.BisqEnvironment;
+import io.bisq.core.app.BisqExecutable;
+import joptsimple.OptionException;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+
+import java.util.Locale;
+
+import static io.bisq.core.app.BisqEnvironment.DEFAULT_APP_NAME;
+import static io.bisq.core.app.BisqEnvironment.DEFAULT_USER_DATA_DIR;
+import static io.bisq.core.app.BisqExecutable.EXIT_FAILURE;
+import static io.bisq.core.app.BisqExecutable.getBisqEnvironment;
+import java.util.Arrays;
+import java.util.logging.Level;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@SpringBootApplication
+public class EngineAppMain extends BisqExecutable{
+    
+    private static String[] Args;
+    public static ConfigurableApplicationContext SpringApp;
+    private EngineApp bisqApp;
+    
+    private static final Logger log = LoggerFactory.getLogger(EngineAppMain.class);   
+    private static final long MAX_MEMORY_MB_DEFAULT = 500;
+    private static final long CHECK_MEMORY_PERIOD_SEC = 2 * 60;
+    private volatile boolean stopped;
+    private static long maxMemory = MAX_MEMORY_MB_DEFAULT;
+    
+    static {
+        // Need to set default locale initially otherwise we get problems at non-english OS
+        Locale.setDefault(new Locale("en", Locale.getDefault().getCountry()));
+        Utilities.removeCryptographyRestrictions();
+    }
+    
+    public static void main(String[] args) throws Exception {
+
+        SpringApp = SpringApplication.run(EngineAppMain.class,args);
+        
+        // We don't want to do the full argument parsing here as that might easily change in update versions
+        // So we only handle the absolute minimum which is APP_NAME, APP_DATA_DIR_KEY and USER_DATA_DIR
+        OptionParser parser = new OptionParser();
+        
+        parser.allowsUnrecognizedOptions();
+
+        parser.accepts(AppOptionKeys.USER_DATA_DIR_KEY, description("User data directory", DEFAULT_USER_DATA_DIR))
+                .withRequiredArg();
+        parser.accepts(AppOptionKeys.APP_NAME_KEY, description("Application name", DEFAULT_APP_NAME))
+                .withRequiredArg();
+        
+        
+        OptionSet options;
+        
+        try {
+            options = parser.parse(args);
+        } catch (OptionException ex) {
+            System.out.println("error: " + ex.getMessage());
+            System.out.println();
+            parser.printHelpOn(System.out);
+            System.exit(EXIT_FAILURE);
+            return;
+        }
+        
+        BisqEnvironment bisqEnvironment = getBisqEnvironment(options);
+
+        // need to call that before bisqAppMain().execute(args)
+        initAppDir(bisqEnvironment.getProperty(AppOptionKeys.APP_DATA_DIR_KEY));
+
+        // For some reason the JavaFX launch process results in us losing the thread context class loader: reset it.
+        // In order to work around a bug in JavaFX 8u25 and below, you must include the following code as the first line of your realMain method:
+        //BisqAppMain bisqAppMain = SpringApp.getBean(EngineAppMain.class);
+        
+        Thread.currentThread().setContextClassLoader(EngineAppMain.class.getClassLoader());
+        SpringApp.getBean(EngineAppMain.class).execute(args);       
+    }
+    
+    @Override
+    protected void doExecute(OptionSet options) {
+        
+        EngineApp.setEnvironment(getBisqEnvironment(options));
+        
+            UserThread.execute(() -> {
+                bisqApp = new EngineApp();
+        });
+    }
+}
