@@ -3,19 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.bisq.engine.main.api;
+package io.bisq.engine.app.api;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.googlecode.jsonrpc4j.JsonRpcService;
-import io.bisq.engine.main.api.util.bootInfo;
+import io.bisq.engine.app.api.util.bootInfo;
 
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 @JsonRpcService("/api")
 public interface Interface {
     public Boolean test();
 
     public bootInfo boot();
     
-    public Object user();
+    public String user();
     
 }

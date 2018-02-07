@@ -3,20 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.bisq.engine.main.api;
+package io.bisq.engine.app.api;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.google.inject.Injector;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import org.springframework.stereotype.Service;
 
 import io.bisq.core.user.User;
-import io.bisq.engine.main.api.util.bootInfo;
+import io.bisq.engine.app.api.util.bootInfo;
 
 @Service
 @AutoJsonRpcServiceImpl
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-public class Model implements Interface{
+public class Implementation implements Interface{
     
     private static Injector injector;
     
@@ -36,7 +34,7 @@ public class Model implements Interface{
     }
     
     @Override
-    public Object user(){
-        return injector.getInstance(User.class).getClass();
+    public String user(){
+        return injector.getInstance(User.class).getAccountId();
     }
 }

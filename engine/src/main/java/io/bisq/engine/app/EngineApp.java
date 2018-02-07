@@ -64,7 +64,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import io.bisq.engine.main.api.Model;
+import io.bisq.engine.app.api.Implementation;
 
 public class EngineApp {
     private static final Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(EngineApp.class);
@@ -154,7 +154,7 @@ public class EngineApp {
             // Guice
             bisqAppModule = new EngineAppModule(bisqEnvironment);
             injector = Guice.createInjector(bisqAppModule); 
-            Model.inject(injector);
+            Implementation.inject(injector);
             
             // All classes which are persisting objects need to be added here
             // Maintain order!

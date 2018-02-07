@@ -32,8 +32,7 @@ import static io.bisq.core.app.BisqEnvironment.DEFAULT_APP_NAME;
 import static io.bisq.core.app.BisqEnvironment.DEFAULT_USER_DATA_DIR;
 import static io.bisq.core.app.BisqExecutable.EXIT_FAILURE;
 import static io.bisq.core.app.BisqExecutable.getBisqEnvironment;
-import java.util.Arrays;
-import java.util.logging.Level;
+
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -98,7 +97,8 @@ public class EngineAppMain extends BisqExecutable{
         //BisqAppMain bisqAppMain = SpringApp.getBean(EngineAppMain.class);
         
         Thread.currentThread().setContextClassLoader(EngineAppMain.class.getClassLoader());
-        SpringApp.getBean(EngineAppMain.class).execute(args);       
+        SpringApp.getBean(EngineAppMain.class).execute(args);
+        
     }
     
     @Override

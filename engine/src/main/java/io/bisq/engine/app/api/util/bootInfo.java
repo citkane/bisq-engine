@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.bisq.engine.main.api.util;
+package io.bisq.engine.app.api.util;
 
 import io.bisq.engine.app.EngineBoot;
 import javafx.beans.property.BooleanProperty;
