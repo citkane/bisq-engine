@@ -39,7 +39,6 @@
     </properties>
 
     <modules>
-        <module>gui</module>
         <module>engine</module>
         <module>seednode</module>
     </modules>
@@ -74,10 +73,11 @@
     <dependencies>
         
         <dependency>
-            <groupId>com.github.bisq-network.exchange</groupId>
-            <artifactId>seednode</artifactId>
-        </dependency>
-
+            <groupId>io.bisq</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
+        </dependency>  
+                  
         <!-- NOTE: our custom bitcoinj dependency is resolved transitively
              via the libdohj dependency below -->
         <dependency>
@@ -256,6 +256,12 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>com.github.bisq-network.exchange</groupId>
+                <artifactId>core</artifactId>
+                <version>v${project.version}</version>
+            </dependency>
+                       
+            <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk15on</artifactId>
                 <version>1.56</version>
@@ -269,23 +275,7 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpg-jdk16</artifactId>
                 <version>1.46</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.bisq-network.exchange</groupId>
-                <artifactId>core</artifactId>
-                <version>v${project.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>io.bisq</groupId>
-                        <artifactId>gui</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.github.bisq-network.exchange</groupId>
-                <artifactId>seednode</artifactId>
-                <version>v${project.version}</version>
-            </dependency>
+            </dependency>           
         </dependencies>
     </dependencyManagement>
 

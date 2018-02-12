@@ -18,6 +18,7 @@
 package io.bisq.engine.app;
 
 import com.google.inject.Singleton;
+import static com.google.inject.name.Names.named;
 import io.bisq.common.Clock;
 import io.bisq.common.app.AppModule;
 import io.bisq.common.crypto.KeyRing;
@@ -49,24 +50,34 @@ import org.springframework.core.env.Environment;
 
 import java.io.File;
 
-import static com.google.inject.name.Names.named;
+import io.bisq.engine.app.helpers.Args;
+import io.bisq.gui.common.view.CachingViewLoader;
+import io.bisq.gui.main.overlays.notifications.NotificationCenter;
+import javafx.stage.Stage;
 
 
 public class EngineAppModule extends AppModule {
-
-    public EngineAppModule(Environment environment) {
+   
+    private final Stage primaryStage;
+    
+    public EngineAppModule(Environment environment, Stage primaryStage) {
         super(environment);
+        this.primaryStage = primaryStage;
     }
 
     @Override
     protected void configure() {
         bind(BisqEnvironment.class).toInstance((BisqEnvironment) environment);
+
+        if(Args.gui) bind(CachingViewLoader.class).in(Singleton.class);
         bind(KeyStorage.class).in(Singleton.class);
         bind(KeyRing.class).in(Singleton.class);
         bind(User.class).in(Singleton.class);
+        if(Args.gui) bind(NotificationCenter.class).in(Singleton.class);
         bind(Clock.class).in(Singleton.class);
         bind(Preferences.class).in(Singleton.class);
         bind(BridgeAddressProvider.class).to(Preferences.class).in(Singleton.class);
+
         bind(SeedNodesRepository.class).to(CoreSeedNodesRepository.class).in(Singleton.class);
 
         File storageDir = new File(environment.getRequiredProperty(Storage.STORAGE_DIR));
@@ -86,7 +97,7 @@ public class EngineAppModule extends AppModule {
         install(p2pModule());
         install(bitcoinModule());
         install(daoModule());
-        install(module());
+        install(engineModule());
         install(alertModule());
         install(filterModule());
     }
@@ -126,7 +137,7 @@ public class EngineAppModule extends AppModule {
     private DaoModule daoModule() {
         return new DaoModule(environment);
     }
-    private AppModule module(){
-        return new EngineModule(environment);
+    private EngineModule engineModule(){
+        return new EngineModule(environment,primaryStage);
     }
 }

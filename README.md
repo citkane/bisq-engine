@@ -2,11 +2,11 @@
 
 Base component for a [BISQ](https://github.com/bisq-network/exchange) MVC architecture.
 
-This bootstraps the core application headless without launching the javaFX application and plumbs the Guice injector to an API interface/implementation space.
+This bootstraps the core application optionally with GUI or headless without launching the javaFX application and plumbs the Guice injector to an API interface/implementation space.
 
-It is envisaged to structure the model/interfaces in a way to provide maximum ease of re-use between multiple outputs (http,socket,io,etc). The Application is launched under a Spring-boot container and this provides an http outlet. It is envisaged that the API commonly serve the native JAVA GUI, any remote GUI's or any automated procedures.
+It is envisaged to structure the model/interfaces in a way to provide maximum ease of re-use between multiple outputs (http,socket,io,etc). The Application is optionally launched under a Spring-boot container to provide an http outlet. It is envisaged that the API commonly serve the native JAVA GUI and any remote GUI's or any automated procedures from a common point.
 
-The initial commit does not do much yet except to wire major components together. I have connected up a http JsonRpc interface.
+The initial commit does not do much yet except to wire major components together. I have connected up a http JsonRpc interface for now, working on swagger.
 
 ## To regtest:
 
@@ -22,7 +22,7 @@ git clone https://github.com/citkane/bisq-engine.git ./
 mvn clean install
 ```
 
-**Launch a bitcoin server***
+**Launch a bitcoin server**
 ```
 nohup bitcoin-qt -regtest &
 ```
@@ -34,8 +34,10 @@ nohup java -jar seednode/target/SeedNode.jar --baseCurrencyNetwork=BTC_REGTEST -
 ```
 
 **Start the engine**
+Option flags are `--headless` to start without GUI and `--http <optional port>` or `--http` to start at port 8080. Bound to `localhost` only.
+
 ```
-java -jar engine/target/engine-0.6.5.jar --baseCurrencyNetwork=BTC_REGTEST --bitcoinRegtestHost localhost --nodePort 2222 --useLocalhost true --appName Bisq-Regtest-Bob --seedNodes=localhost:2002
+java -jar engine/target/engine-0.6.5.jar --baseCurrencyNetwork=BTC_REGTEST --bitcoinRegtestHost localhost --nodePort 2222 --useLocalhost true --appName Bisq-Regtest-Bob --seedNodes=localhost:2002 --headless --http
 ```
 
 The engine is listening on port 8080.

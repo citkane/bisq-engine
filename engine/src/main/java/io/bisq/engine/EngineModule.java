@@ -18,23 +18,54 @@
 package io.bisq.engine;
 
 
+import com.google.inject.Singleton;
 import com.google.inject.name.Names;
-
 import io.bisq.common.app.AppModule;
 import io.bisq.common.locale.Res;
 import io.bisq.core.app.AppOptionKeys;
-
+import io.bisq.engine.app.helpers.Args;
+import io.bisq.gui.Navigation;
+import io.bisq.gui.common.fxml.FxmlViewLoader;
+import io.bisq.gui.common.view.CachingViewLoader;
+import io.bisq.gui.common.view.ViewFactory;
+import io.bisq.gui.common.view.ViewLoader;
+import io.bisq.gui.common.view.guice.InjectorViewFactory;
+import io.bisq.gui.main.offer.offerbook.OfferBook;
+import io.bisq.gui.main.overlays.windows.TorNetworkSettingsWindow;
+import io.bisq.gui.util.BSFormatter;
+import io.bisq.gui.util.BsqFormatter;
+import io.bisq.gui.util.Transitions;
+import javafx.stage.Stage;
 import org.springframework.core.env.Environment;
+
 import java.util.ResourceBundle;
 
 public class EngineModule extends AppModule {
 
-    public EngineModule(Environment environment) {
+    private final Stage primaryStage;
+    
+    public EngineModule(Environment environment, Stage primaryStage) {
         super(environment);
+        this.primaryStage = primaryStage;
     }
 
     @Override
     protected void configure() {
+        
+        if(Args.gui){
+            bind(BSFormatter.class).in(Singleton.class);        
+            bind(InjectorViewFactory.class).in(Singleton.class);
+            bind(ViewFactory.class).to(InjectorViewFactory.class);      
+            bind(ViewLoader.class).to(FxmlViewLoader.class).in(Singleton.class);
+            bind(CachingViewLoader.class).in(Singleton.class);
+            bind(Navigation.class).in(Singleton.class);
+            bind(OfferBook.class).in(Singleton.class);        
+            bind(BsqFormatter.class).in(Singleton.class);
+            bind(TorNetworkSettingsWindow.class).in(Singleton.class);
+            bind(Transitions.class).in(Singleton.class);
+            bind(Stage.class).toInstance(primaryStage);        
+        }
+
         bind(ResourceBundle.class).toInstance(Res.getResourceBundle());
         bindConstant().annotatedWith(Names.named(AppOptionKeys.APP_NAME_KEY)).to(environment.getRequiredProperty(AppOptionKeys.APP_NAME_KEY));
     }

@@ -5,11 +5,11 @@
  */
 package io.bisq.engine.app.api.util;
 
-import io.bisq.engine.app.EngineBoot;
+import io.bisq.engine.EngineBoot;
 import javafx.beans.property.BooleanProperty;
 import org.fxmisc.easybind.monadic.MonadicBinding;
 
-public class bootInfo {
+public class bootInfo{
     public Boolean p2pNetWorkReady = EngineBoot.p2pNetWorkReady.get();
     public Boolean allServicesDone = EngineBoot.allServicesDone.get();
     public Boolean walletInitialized = EngineBoot.walletInitialized.get();

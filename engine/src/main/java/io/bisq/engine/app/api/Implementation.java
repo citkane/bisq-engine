@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import io.bisq.core.user.User;
 import io.bisq.engine.app.api.util.bootInfo;
+import io.bisq.engine.app.CommonApp;
 
 @Service
 @AutoJsonRpcServiceImpl
