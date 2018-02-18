@@ -61,6 +61,8 @@ java -jar engine/target/Engine.jar --baseCurrencyNetwork=BTC_REGTEST --bitcoinRe
 API at http://localhost:3000/swagger
 
 
+If the GUI's are not showing that they are synchronised with REGTEST, go to your bitcoin core and `generate 1`.
+
 ## Where it's at?
 
 The plumbing is all done. The API can get some basic information and create offers. More to come soon.
