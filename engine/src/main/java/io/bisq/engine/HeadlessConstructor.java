@@ -6,6 +6,7 @@
 package io.bisq.engine;
 
 import com.google.inject.Inject;
+
 import io.bisq.common.Clock;
 import io.bisq.common.crypto.KeyRing;
 import io.bisq.core.alert.AlertManager;
@@ -31,7 +32,6 @@ import io.bisq.core.user.User;
 import io.bisq.gui.components.BalanceWithConfirmationTextField;
 import io.bisq.gui.components.TxIdTextField;
 import io.bisq.gui.main.overlays.notifications.NotificationCenter;
-import io.bisq.gui.main.overlays.windows.WalletPasswordWindow;
 import io.bisq.gui.util.BSFormatter;
 import io.bisq.network.crypto.EncryptionService;
 import io.bisq.network.p2p.P2PService;
@@ -54,7 +54,6 @@ public class HeadlessConstructor extends EngineBoot{
             AlertManager alertManager, 
             PrivateNotificationManager privateNotificationManager,
             FilterManager filterManager, 
-            WalletPasswordWindow walletPasswordWindow, 
             TradeStatisticsManager tradeStatisticsManager,
             NotificationCenter notificationCenter,  
             Clock clock, 
@@ -82,7 +81,6 @@ public class HeadlessConstructor extends EngineBoot{
         EngineBoot.alertManager = alertManager;
         EngineBoot.privateNotificationManager = privateNotificationManager;
         EngineBoot.filterManager = filterManager; // Reference so it's initialized and eventListener gets registered
-        EngineBoot.walletPasswordWindow = walletPasswordWindow;
         EngineBoot.tradeStatisticsManager = tradeStatisticsManager;
         EngineBoot.notificationCenter = notificationCenter;
         EngineBoot.clock = clock;

@@ -6,7 +6,7 @@
     <groupId>io.bisq</groupId>
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.6.5</version>
+    <version>0.6.5-engine</version>
     <description>Bisq - The decentralized exchange network</description>
     <url>https://bisq.io</url>
 
@@ -54,7 +54,6 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-            
         </plugins>
     </build>
 
@@ -71,13 +70,7 @@
     </repositories>
 
     <dependencies>
-        
-        <dependency>
-            <groupId>io.bisq</groupId>
-            <artifactId>core</artifactId>
-            <version>${project.version}</version>
-        </dependency>  
-                  
+
         <!-- NOTE: our custom bitcoinj dependency is resolved transitively
              via the libdohj dependency below -->
         <dependency>
@@ -256,12 +249,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.github.bisq-network.exchange</groupId>
-                <artifactId>core</artifactId>
-                <version>v${project.version}</version>
-            </dependency>
-                       
-            <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk15on</artifactId>
                 <version>1.56</version>
@@ -275,7 +262,7 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpg-jdk16</artifactId>
                 <version>1.46</version>
-            </dependency>           
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

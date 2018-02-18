@@ -55,8 +55,8 @@ import io.bisq.core.user.Preferences;
 import io.bisq.core.user.User;
 import io.bisq.engine.app.EngineAppModule;
 import io.bisq.engine.HeadlessConstructor;
-import io.bisq.engine.app.api.Implementation;
-import io.bisq.engine.app.helpers.Args;
+import io.bisq.engine.app.api.Data;
+import io.bisq.engine.app.util.Args;
 import io.bisq.gui.Navigation;
 import io.bisq.gui.SystemTray;
 import io.bisq.gui.common.UITimer;
@@ -154,7 +154,7 @@ public class CommonApp extends Application{
                 log.error("throwableClass= " + throwable.getClass());
                 log.error("Stack trace:\n" + ExceptionUtils.getStackTrace(throwable));
                 throwable.printStackTrace();
-                if(Args.gui) UserThread.execute(() -> showErrorPopup(throwable, false));
+                UserThread.execute(() -> showErrorPopup(throwable, false));
             }
         };
         Thread.setDefaultUncaughtExceptionHandler(handler);
@@ -164,7 +164,7 @@ public class CommonApp extends Application{
             Utilities.checkCryptoPolicySetup();
         } catch (NoSuchAlgorithmException | LimitedKeyStrengthException e) {
             e.printStackTrace();
-            if(Args.gui) UserThread.execute(() -> showErrorPopup(e, true));
+            UserThread.execute(() -> showErrorPopup(e, true));
         }
 
         Security.addProvider(new BouncyCastleProvider());
@@ -193,7 +193,7 @@ public class CommonApp extends Application{
             engineAppModule = new EngineAppModule(bisqEnvironment, primaryStage);
             injector = Guice.createInjector(engineAppModule);
             if(Args.gui) injector.getInstance(InjectorViewFactory.class).setInjector(injector);
-            Implementation.inject(injector);
+            if(Args.http) Data.inject(injector);
 
             // All classes which are persisting objects need to be added here
             // Maintain order!
@@ -328,6 +328,8 @@ public class CommonApp extends Application{
                             osArchitecture))
                             .show();                
                 }
+                
+                //TODO push notifications to Websocket.
 
             }
             UserThread.runPeriodically(() -> Profiler.printSystemLoad(log), LOG_MEMORY_PERIOD_MIN, TimeUnit.MINUTES);
@@ -335,7 +337,7 @@ public class CommonApp extends Application{
                 HeadlessConstructor root = injector.getInstance(HeadlessConstructor.class);
                 UserThread.execute(root::start);           
             }
-
+            
         } catch (Throwable throwable) {
             log.error("Error during app init", throwable);
             showErrorPopup(throwable, false);
@@ -366,7 +368,7 @@ public class CommonApp extends Application{
 
     public void showErrorPopup(Throwable throwable, boolean doShutDown) {
         if (!shutDownRequested) {
-            if (scene == null) {
+            if (scene == null && Args.gui) {
                 log.warn("Scene not available yet, we create a new scene. The bug might be caused by an exception in a constructor or by a circular dependency in guice. throwable=" + throwable.toString());
                 scene = new Scene(new StackPane(), 1000, 650);
                 scene.getStylesheets().setAll(
@@ -381,9 +383,15 @@ public class CommonApp extends Application{
                         String message = throwable.getMessage();
                         popupOpened = true;
                         if (message != null)
-                            new Popup<>().error(message).onClose(() -> popupOpened = false).show();
+                            if(Args.gui) new Popup<>().error(message).onClose(() -> popupOpened = false).show();
+                        
+                            //TODO push notifications to Websocket.
+                        
                         else
-                            new Popup<>().error(throwable.toString()).onClose(() -> popupOpened = false).show();
+                            if(Args.gui) new Popup<>().error(throwable.toString()).onClose(() -> popupOpened = false).show();
+                        
+                            //TODO push notifications to Websocket.
+                            
                     }
                 } catch (Throwable throwable3) {
                     log.error("Error at displaying Throwable.");

@@ -23,7 +23,7 @@ import com.google.inject.name.Names;
 import io.bisq.common.app.AppModule;
 import io.bisq.common.locale.Res;
 import io.bisq.core.app.AppOptionKeys;
-import io.bisq.engine.app.helpers.Args;
+import io.bisq.engine.app.util.Args;
 import io.bisq.gui.Navigation;
 import io.bisq.gui.common.fxml.FxmlViewLoader;
 import io.bisq.gui.common.view.CachingViewLoader;

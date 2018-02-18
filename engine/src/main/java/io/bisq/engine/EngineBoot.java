@@ -66,7 +66,7 @@ import io.bisq.core.trade.statistics.TradeStatisticsManager;
 import io.bisq.core.user.DontShowAgainLookup;
 import io.bisq.core.user.Preferences;
 import io.bisq.core.user.User;
-import io.bisq.engine.app.helpers.Args;
+import io.bisq.engine.app.util.Args;
 import io.bisq.gui.common.model.ViewModel;
 import io.bisq.gui.components.BalanceWithConfirmationTextField;
 import io.bisq.gui.components.TxIdTextField;
@@ -226,17 +226,17 @@ public class EngineBoot implements ViewModel {
         }
 
         //noinspection ConstantConditions,ConstantConditions,PointlessBooleanExpression
-        if (!preferences.isTacAccepted() && !DevEnv.DEV_MODE && Args.gui) {
+        if (!preferences.isTacAccepted() && !DevEnv.DEV_MODE) {
             UserThread.runAfter(() -> {
-                tacWindow.onAction(() -> {
+                if(Args.gui) tacWindow.onAction(() -> {
                     preferences.setTacAccepted(true);
                     checkIfLocalHostNodeIsRunning();
                 }).show();
-            }, 1);
-        } else {
-            if(!Args.gui){
+                
                 //TODO push notifications to Websocket.
-            }
+                               
+            }, 1);
+        } else {          
             checkIfLocalHostNodeIsRunning();
         }
     }
@@ -298,6 +298,7 @@ public class EngineBoot implements ViewModel {
 
     private void showTorNetworkSettingsWindow() {
         if(Args.gui) torNetworkSettingsWindow.show();
+        
         //TODO push notifications to Websocket.
     }
 
@@ -695,7 +696,7 @@ public class EngineBoot implements ViewModel {
         
     }
 
-    private void checkIfLocalHostNodeIsRunning() {
+    public void checkIfLocalHostNodeIsRunning() {
         Thread checkIfLocalHostNodeIsRunningThread = new Thread() {
             @Override
             public void run() {

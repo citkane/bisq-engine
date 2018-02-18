@@ -22,7 +22,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>io.bisq</groupId>
-        <version>0.6.5</version>
+        <version>0.6.5-engine</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -138,9 +138,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.bisq</groupId>
+            <groupId>com.github.citkane.exchange</groupId>
             <artifactId>core</artifactId>
-            <version>${project.parent.version}</version>
+            <version>v0.6.5-engine</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.citkane.exchange</groupId>
+            <artifactId>seednode</artifactId>
+            <version>v0.6.5-engine</version>
         </dependency>
     </dependencies>
 </project>

@@ -19,11 +19,12 @@ package io.bisq.engine.app;
 
 //import io.bisq.gui.app.GuiApp;
 import io.bisq.common.UserThread;
+import io.bisq.common.app.DevEnv;
 import io.bisq.common.util.Utilities;
 import io.bisq.core.app.AppOptionKeys;
 import io.bisq.core.app.BisqEnvironment;
 import io.bisq.core.app.BisqExecutable;
-import io.bisq.engine.app.helpers.Args;
+import io.bisq.engine.app.util.Args;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -36,24 +37,18 @@ import static io.bisq.core.app.BisqEnvironment.DEFAULT_USER_DATA_DIR;
 import static io.bisq.core.app.BisqExecutable.EXIT_FAILURE;
 import static io.bisq.core.app.BisqExecutable.getBisqEnvironment;
 
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationContext;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
+@EnableSwagger2
 public class EngineAppMain extends BisqExecutable{
     
     
-    public static ConfigurableApplicationContext SpringApp;
+    
+    public static ApplicationContext SpringApp;
     public static Args args;
     
     static {
@@ -63,6 +58,11 @@ public class EngineAppMain extends BisqExecutable{
     }
     
     public static void main(String[] arguments) throws Exception {
+        
+        for (String arg: arguments){
+            if(arg.contains("REGTEST")) DevEnv.USE_DEV_PRIVILEGE_KEYS = true;
+        }
+        
         args = new Args(arguments); 
         if(Args.http){
             SpringApplicationBuilder springApp = new SpringApplicationBuilder(EngineAppMain.class);
@@ -103,7 +103,6 @@ public class EngineAppMain extends BisqExecutable{
             return;
         }
         BisqEnvironment environment = getBisqEnvironment(options);
-        
         
         System.out.println();
         if(Args.gui){           

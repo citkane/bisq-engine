@@ -50,7 +50,7 @@ import org.springframework.core.env.Environment;
 
 import java.io.File;
 
-import io.bisq.engine.app.helpers.Args;
+import io.bisq.engine.app.util.Args;
 import io.bisq.gui.common.view.CachingViewLoader;
 import io.bisq.gui.main.overlays.notifications.NotificationCenter;
 import javafx.stage.Stage;
