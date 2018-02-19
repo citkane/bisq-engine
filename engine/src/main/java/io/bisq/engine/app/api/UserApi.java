@@ -11,7 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
+import static org.springframework.util.MimeTypeUtils.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,17 +20,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/user")
 @Api(tags = {"User"})
 public class UserApi extends Data{
-    
+
     public final class UserJson{
         public String id;
-        public List<AccountJson> paymentAccounts;  
+        public List<AccountJson> paymentAccounts;
     }
     public final class AccountJson{
         public String name;
         public String id;
-        public String paymentmethod;  
+        public String paymentmethod;
     }
-    
+
     @RequestMapping(value = "/", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get details of the user")
     public UserJson User(){
@@ -39,7 +39,7 @@ public class UserApi extends Data{
         thisUser.paymentAccounts = PaymentAccounts();
         return thisUser;
     }
-    
+
     @RequestMapping(value = "/PaymentAccounts", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get details of the user's payment accounts")
     public List<AccountJson> PaymentAccounts(){

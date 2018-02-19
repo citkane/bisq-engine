@@ -57,9 +57,9 @@ import javafx.stage.Stage;
 
 
 public class EngineAppModule extends AppModule {
-   
+
     private final Stage primaryStage;
-    
+
     public EngineAppModule(Environment environment, Stage primaryStage) {
         super(environment);
         this.primaryStage = primaryStage;
@@ -137,6 +137,7 @@ public class EngineAppModule extends AppModule {
     private DaoModule daoModule() {
         return new DaoModule(environment);
     }
+
     private EngineModule engineModule(){
         return new EngineModule(environment,primaryStage);
     }

@@ -19,11 +19,12 @@ package io.bisq.engine.app;
 
 
 public class HeadlessApp extends CommonApp {
-      
+
     public HeadlessApp(){
         try {
             init();
-            start(null);   
+            Thread.currentThread().setName("bisq-engine API");
+            start(null);
         } catch (Exception e) {
             e.printStackTrace();
         }

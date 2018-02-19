@@ -10,14 +10,9 @@ import io.bisq.common.locale.TradeCurrency;
 import io.bisq.common.monetary.Price;
 import io.bisq.core.offer.Offer;
 import io.bisq.core.offer.OfferPayload;
-import io.bisq.core.offer.OpenOfferManager;
-import io.bisq.core.payment.AccountAgeWitnessService;
 import io.bisq.core.payment.PaymentAccount;
-import io.bisq.core.provider.price.PriceFeedService;
-import io.bisq.core.trade.handlers.TransactionResultHandler;
-import io.bisq.core.user.Preferences;
 import io.bisq.engine.app.api.Data.Message;
-import static io.bisq.engine.app.api.Data.injector;
+import static io.bisq.engine.app.api.Data.*;
 import org.bitcoinj.core.Coin;
 
 import java.math.BigDecimal;
@@ -36,10 +31,7 @@ public interface CreateOfferApiInterface {
         Message message = new Message();
 
         CreateOfferDataModel createOffer = injector.getInstance(CreateOfferDataModel.class);
-        Preferences preferences = injector.getInstance(Preferences.class);
-        PriceFeedService priceFeedService = injector.getInstance(PriceFeedService.class);
-        OpenOfferManager openOfferManager = injector.getInstance(OpenOfferManager.class);
-        AccountAgeWitnessService accountAgeWitnessService = injector.getInstance(AccountAgeWitnessService.class);
+
         TradeCurrency tradeCurrency = paymentAccount.getSelectedTradeCurrency();
         String priceCode = paymentAccount.getSelectedTradeCurrency().getCode();
 

@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
+import static org.springframework.util.MimeTypeUtils.*;
 import org.springframework.web.bind.annotation.*;
 
 import io.bisq.gui.main.offer.createoffer.CreateOfferApiInterface;

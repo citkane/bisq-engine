@@ -7,7 +7,7 @@ package io.bisq.engine.app.api;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
+import static org.springframework.util.MimeTypeUtils.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/preferences")
 @Api(tags = {"Preferences"})
 public class PreferencesApi extends Data{
-    
+
     @RequestMapping(value = "/isTacAccepted", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Check if the user has accepted BISQ terms and conditions")
     public Boolean isTacAccepted(){
         return preferences.isTacAccepted();
     }
-    
+
     @RequestMapping(value = "/setTacAccepted", method= RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Accept BISQ terms and conditions")
     public Message setTacAccepted(){
@@ -32,7 +32,7 @@ public class PreferencesApi extends Data{
             return message;
         }
         preferences.setTacAccepted(true);
-        boot.checkIfLocalHostNodeIsRunning();
+        rootView.checkIfLocalHostNodeIsRunning();
         message.message = "Terms and conditions have been accepted";
         return message;
     }

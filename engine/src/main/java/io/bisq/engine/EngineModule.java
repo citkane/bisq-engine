@@ -43,7 +43,7 @@ import java.util.ResourceBundle;
 public class EngineModule extends AppModule {
 
     private final Stage primaryStage;
-    
+
     public EngineModule(Environment environment, Stage primaryStage) {
         super(environment);
         this.primaryStage = primaryStage;
@@ -51,20 +51,25 @@ public class EngineModule extends AppModule {
 
     @Override
     protected void configure() {
-        
-        if(Args.gui){
-            bind(BSFormatter.class).in(Singleton.class);        
-            bind(InjectorViewFactory.class).in(Singleton.class);
-            bind(ViewFactory.class).to(InjectorViewFactory.class);      
+        bind(BSFormatter.class).in(Singleton.class);
+        bind(InjectorViewFactory.class).in(Singleton.class);
+        bind(ViewFactory.class).to(InjectorViewFactory.class);
+
+        if(Args.gui) {
+
             bind(ViewLoader.class).to(FxmlViewLoader.class).in(Singleton.class);
             bind(CachingViewLoader.class).in(Singleton.class);
             bind(Navigation.class).in(Singleton.class);
-            bind(OfferBook.class).in(Singleton.class);        
+        }
+            bind(OfferBook.class).in(Singleton.class);
             bind(BsqFormatter.class).in(Singleton.class);
+
+        if(Args.gui) {
             bind(TorNetworkSettingsWindow.class).in(Singleton.class);
             bind(Transitions.class).in(Singleton.class);
-            bind(Stage.class).toInstance(primaryStage);        
+            bind(Stage.class).toInstance(primaryStage);
         }
+
 
         bind(ResourceBundle.class).toInstance(Res.getResourceBundle());
         bindConstant().annotatedWith(Names.named(AppOptionKeys.APP_NAME_KEY)).to(environment.getRequiredProperty(AppOptionKeys.APP_NAME_KEY));

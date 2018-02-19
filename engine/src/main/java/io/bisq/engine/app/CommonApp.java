@@ -53,7 +53,6 @@ import io.bisq.core.trade.closed.ClosedTradableManager;
 import io.bisq.core.trade.failed.FailedTradesManager;
 import io.bisq.core.user.Preferences;
 import io.bisq.core.user.User;
-import io.bisq.engine.app.EngineAppModule;
 import io.bisq.engine.HeadlessConstructor;
 import io.bisq.engine.app.api.Data;
 import io.bisq.engine.app.util.Args;
@@ -103,7 +102,7 @@ public class CommonApp extends Application{
     private static final Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CommonApp.class);
 
     private static final long LOG_MEMORY_PERIOD_MIN = 10;
-    
+
 
     private static BisqEnvironment bisqEnvironment;
     public static Runnable shutDownHandler;
@@ -112,7 +111,7 @@ public class CommonApp extends Application{
     public static void setEnvironment(BisqEnvironment bisqEnvironment) {
         CommonApp.bisqEnvironment = bisqEnvironment;
     }
-    
+
     private EngineAppModule engineAppModule;
     public static Injector injector;
     private boolean popupOpened;
@@ -120,18 +119,19 @@ public class CommonApp extends Application{
     private final List<String> corruptedDatabaseFiles = new ArrayList<>();
     private MainView mainView;
     private boolean shutDownRequested;
+    Thread API;
 
-    
+
     // NOTE: This method is not called on the JavaFX Application Thread.
     @Override
     public void init() throws Exception {
-        
+
         String logPath = Paths.get(bisqEnvironment.getProperty(AppOptionKeys.APP_DATA_DIR_KEY), "bisq").toString();
         Log.setup(logPath);
         log.info("Log files under: " + logPath);
         Utilities.printSysInfo();
         Log.setLevel(Level.toLevel(bisqEnvironment.getRequiredProperty(CommonOptionKeys.LOG_LEVEL_KEY)));
-        
+
         if(Args.gui){
             UserThread.setExecutor(Platform::runLater);
             UserThread.setTimerClass(UITimer.class);
@@ -180,9 +180,9 @@ public class CommonApp extends Application{
                 Capabilities.Capability.TRADE_STATISTICS_2.ordinal(),
                 Capabilities.Capability.ACCOUNT_AGE_WITNESS.ordinal()
         )));
-        
+
     }
-    
+
     @SuppressWarnings("PointlessBooleanExpression")
     @Override
     public void start(Stage stage) throws IOException {
@@ -313,7 +313,7 @@ public class CommonApp extends Application{
                 primaryStage.getIcons().add(new Image(getClass().getResourceAsStream(iconPath)));
 
                 // make the UI visible
-                primaryStage.show();           
+                primaryStage.show();
             }
 
 
@@ -326,18 +326,18 @@ public class CommonApp extends Application{
                             osArchitecture,
                             Utilities.getJVMArchitecture(),
                             osArchitecture))
-                            .show();                
+                            .show();
                 }
-                
+
                 //TODO push notifications to Websocket.
 
             }
             UserThread.runPeriodically(() -> Profiler.printSystemLoad(log), LOG_MEMORY_PERIOD_MIN, TimeUnit.MINUTES);
             if(!Args.gui){
                 HeadlessConstructor root = injector.getInstance(HeadlessConstructor.class);
-                UserThread.execute(root::start);           
+                UserThread.execute(root::start);
             }
-            
+
         } catch (Throwable throwable) {
             log.error("Error during app init", throwable);
             showErrorPopup(throwable, false);
@@ -384,14 +384,14 @@ public class CommonApp extends Application{
                         popupOpened = true;
                         if (message != null)
                             if(Args.gui) new Popup<>().error(message).onClose(() -> popupOpened = false).show();
-                        
+
                             //TODO push notifications to Websocket.
-                        
+
                         else
                             if(Args.gui) new Popup<>().error(throwable.toString()).onClose(() -> popupOpened = false).show();
-                        
+
                             //TODO push notifications to Websocket.
-                            
+
                     }
                 } catch (Throwable throwable3) {
                     log.error("Error at displaying Throwable.");
@@ -449,7 +449,7 @@ public class CommonApp extends Application{
         stage.setHeight(100);
         stage.show();
     }
-    
+
     @SuppressWarnings("CodeBlock2Expr")
     @Override
     public void stop() {
@@ -504,5 +504,5 @@ public class CommonApp extends Application{
             System.exit(1);
         }
     }
-    
+
 }

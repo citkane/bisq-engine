@@ -37,57 +37,53 @@ import io.bisq.network.p2p.P2PService;
 import io.bisq.core.offer.OfferBookService;
 import io.bisq.engine.EngineBoot;
 import io.bisq.gui.main.offer.offerbook.OfferBook;
-import io.swagger.annotations.ApiResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 public class Data {
-    
-    public static WalletsManager walletsManager; 
+
+    public static WalletsManager walletsManager;
     public static WalletsSetup walletsSetup;
-    public static BtcWalletService btcWalletService; 
+    public static BtcWalletService btcWalletService;
     public static PriceFeedService priceFeedService;
-    public static ArbitratorManager arbitratorManager; 
-    public static P2PService p2PService; 
+    public static ArbitratorManager arbitratorManager;
+    public static P2PService p2PService;
     public static TradeManager tradeManager;
-    public static OpenOfferManager openOfferManager; 
-    public static DisputeManager disputeManager; 
+    public static OpenOfferManager openOfferManager;
+    public static DisputeManager disputeManager;
     public static Preferences preferences;
-    public static User user; 
-    public static AlertManager alertManager; 
+    public static User user;
+    public static AlertManager alertManager;
     public static PrivateNotificationManager privateNotificationManager;
-    public static FilterManager filterManager; 
+    public static FilterManager filterManager;
     public static TradeStatisticsManager tradeStatisticsManager;
-    public static NotificationCenter notificationCenter;  
-    public static Clock clock; 
+    public static NotificationCenter notificationCenter;
+    public static Clock clock;
     public static FeeService feeService;
-    public static DaoManager daoManager; 
+    public static DaoManager daoManager;
     public static EncryptionService encryptionService;
-    public static KeyRing keyRing; 
-    public static BisqEnvironment bisqEnvironment; 
+    public static KeyRing keyRing;
+    public static BisqEnvironment bisqEnvironment;
     public static FailedTradesManager failedTradesManager;
-    public static ClosedTradableManager closedTradableManager; 
+    public static ClosedTradableManager closedTradableManager;
     public static AccountAgeWitnessService accountAgeWitnessService;
     public static BSFormatter formatter;
     public static OfferBookService offerBookService;
-    public static OfferBook offerBook;   
-    public static EngineBoot boot;
-       
+    public static OfferBook offerBook;
+    public static EngineBoot rootView;
+
     public static Injector injector;
-    
+
     public static class Message{
         public Boolean success = true;
         public String message;
         public Object data;
     };
-    
 
     public static ObjectMapper Json = new ObjectMapper();
-    
+
     public static void inject(Injector _injector){
-        injector = _injector;       
+        injector = _injector;
         walletsManager = injector.getInstance(WalletsManager.class);
         walletsSetup = injector.getInstance(WalletsSetup.class);
         btcWalletService = injector.getInstance(BtcWalletService.class);
@@ -113,12 +109,12 @@ public class Data {
         failedTradesManager = injector.getInstance(FailedTradesManager.class);
         closedTradableManager = injector.getInstance(ClosedTradableManager.class);
         accountAgeWitnessService = injector.getInstance(AccountAgeWitnessService.class);
-        formatter = injector.getInstance(BSFormatter.class);       
+        formatter = injector.getInstance(BSFormatter.class);
         offerBook = injector.getInstance(OfferBook.class);
         offerBookService = injector.getInstance(OfferBookService.class);
 
-        boot = injector.getInstance(EngineBoot.class);
-        
+        rootView = injector.getInstance(EngineBoot.class);
+
     }
 
     /*Exception Handlers*/

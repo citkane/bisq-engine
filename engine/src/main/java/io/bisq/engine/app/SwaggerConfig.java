@@ -19,20 +19,20 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableSwagger2
-public class SwaggerConfig {   
+public class SwaggerConfig {
     @Bean
     public Docket api(){
-        return new Docket(DocumentationType.SWAGGER_2)  
-            .select()                                  
-            .apis(RequestHandlerSelectors.basePackage( "io.bisq.engine.app.api" )) 
-            .paths(PathSelectors.any())           
+        return new Docket(DocumentationType.SWAGGER_2)
+            .select()
+            .apis(RequestHandlerSelectors.basePackage( "io.bisq.engine.app.api" ))
+            .paths(PathSelectors.any())
             .build()
             .apiInfo(metadata())
             .tags(
                 new Tag("Offers", "Perform operations relating to offers"),
                 new Tag("Preferences", "Perform operations relating to preferences"),
                 new Tag("User", "Perform operations relating to the user")
-            );     
+            );
     }
     Contact michael = new Contact("Bisq-engine","https://github.com/citkane/bisq-engine",null);
     private ApiInfo metadata() {

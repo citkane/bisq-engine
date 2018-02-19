@@ -3,10 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.bisq.engine;
+package io.bisq.gui.main;
 
 import com.google.inject.Inject;
-
 import io.bisq.common.Clock;
 import io.bisq.common.crypto.KeyRing;
 import io.bisq.core.alert.AlertManager;
@@ -29,14 +28,20 @@ import io.bisq.core.trade.failed.FailedTradesManager;
 import io.bisq.core.trade.statistics.TradeStatisticsManager;
 import io.bisq.core.user.Preferences;
 import io.bisq.core.user.User;
+import io.bisq.engine.EngineBoot;
+import io.bisq.gui.common.model.ViewModel;
 import io.bisq.gui.components.BalanceWithConfirmationTextField;
 import io.bisq.gui.components.TxIdTextField;
 import io.bisq.gui.main.overlays.notifications.NotificationCenter;
+import io.bisq.gui.main.overlays.windows.TacWindow;
+import io.bisq.gui.main.overlays.windows.TorNetworkSettingsWindow;
+import io.bisq.gui.main.overlays.windows.WalletPasswordWindow;
 import io.bisq.gui.util.BSFormatter;
 import io.bisq.network.crypto.EncryptionService;
 import io.bisq.network.p2p.P2PService;
+import javafx.beans.property.*;
 
-public class HeadlessConstructor extends EngineBoot{
+public class MainViewModel extends EngineBoot{
 
     private final WalletsManager walletsManager;
     private final WalletsSetup walletsSetup;
@@ -51,8 +56,10 @@ public class HeadlessConstructor extends EngineBoot{
     private final PrivateNotificationManager privateNotificationManager;
     @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private final FilterManager filterManager;
+    private final WalletPasswordWindow walletPasswordWindow;
     private final TradeStatisticsManager tradeStatisticsManager;
     private final NotificationCenter notificationCenter;
+    private final TacWindow tacWindow;
     private final Clock clock;
     private final FeeService feeService;
     private final DaoManager daoManager;
@@ -62,6 +69,7 @@ public class HeadlessConstructor extends EngineBoot{
     private final FailedTradesManager failedTradesManager;
     private final ClosedTradableManager closedTradableManager;
     private final AccountAgeWitnessService accountAgeWitnessService;
+    final TorNetworkSettingsWindow torNetworkSettingsWindow;
     private final BSFormatter formatter;
 
     final PriceFeedService priceFeedService;
@@ -69,7 +77,7 @@ public class HeadlessConstructor extends EngineBoot{
 
     @SuppressWarnings("WeakerAccess")
     @Inject
-    public HeadlessConstructor(
+    public MainViewModel(
             WalletsManager walletsManager,
             WalletsSetup walletsSetup,
             BtcWalletService btcWalletService,
@@ -84,8 +92,10 @@ public class HeadlessConstructor extends EngineBoot{
             AlertManager alertManager,
             PrivateNotificationManager privateNotificationManager,
             FilterManager filterManager,
+            WalletPasswordWindow walletPasswordWindow,
             TradeStatisticsManager tradeStatisticsManager,
             NotificationCenter notificationCenter,
+            TacWindow tacWindow,
             Clock clock,
             FeeService feeService,
             DaoManager daoManager,
@@ -95,8 +105,10 @@ public class HeadlessConstructor extends EngineBoot{
             FailedTradesManager failedTradesManager,
             ClosedTradableManager closedTradableManager,
             AccountAgeWitnessService accountAgeWitnessService,
+            TorNetworkSettingsWindow torNetworkSettingsWindow,
             BSFormatter formatter
     ) {
+
         this.walletsManager = walletsManager;
         this.walletsSetup = walletsSetup;
         this.btcWalletService = btcWalletService;
@@ -111,8 +123,10 @@ public class HeadlessConstructor extends EngineBoot{
         this.alertManager = alertManager;
         this.privateNotificationManager = privateNotificationManager;
         this.filterManager = filterManager; // Reference so it's initialized and eventListener gets registered
+        this.walletPasswordWindow = walletPasswordWindow;
         this.tradeStatisticsManager = tradeStatisticsManager;
         this.notificationCenter = notificationCenter;
+        this.tacWindow = tacWindow;
         this.clock = clock;
         this.feeService = feeService;
         this.daoManager = daoManager;
@@ -122,6 +136,7 @@ public class HeadlessConstructor extends EngineBoot{
         this.failedTradesManager = failedTradesManager;
         this.closedTradableManager = closedTradableManager;
         this.accountAgeWitnessService = accountAgeWitnessService;
+        this.torNetworkSettingsWindow = torNetworkSettingsWindow;
         this.formatter = formatter;
 
         EngineBoot.walletsManager = this.walletsManager;
@@ -138,8 +153,10 @@ public class HeadlessConstructor extends EngineBoot{
         EngineBoot.alertManager = this.alertManager;
         EngineBoot.privateNotificationManager = this.privateNotificationManager;
         EngineBoot.filterManager = this.filterManager; // Reference so it's initialized and eventListener gets registered
+        EngineBoot.walletPasswordWindow = this.walletPasswordWindow;
         EngineBoot.tradeStatisticsManager = this.tradeStatisticsManager;
         EngineBoot.notificationCenter = this.notificationCenter;
+        EngineBoot.tacWindow = this.tacWindow;
         EngineBoot.clock = this.clock;
         EngineBoot.feeService = this.feeService;
         EngineBoot.daoManager = this.daoManager;
@@ -149,9 +166,13 @@ public class HeadlessConstructor extends EngineBoot{
         EngineBoot.failedTradesManager = this.failedTradesManager;
         EngineBoot.closedTradableManager = this.closedTradableManager;
         EngineBoot.accountAgeWitnessService = this.accountAgeWitnessService;
+        EngineBoot.torNetworkSettingsWindow = this.torNetworkSettingsWindow;
         EngineBoot.formatter = this.formatter;
 
         TxIdTextField.setPreferences(preferences);
 
+        // TODO
+        TxIdTextField.setWalletService(btcWalletService);
+        BalanceWithConfirmationTextField.setWalletService(btcWalletService);
     }
 }

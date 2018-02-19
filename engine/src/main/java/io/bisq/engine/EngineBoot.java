@@ -18,7 +18,6 @@
 package io.bisq.engine;
 
 import com.google.common.net.InetAddresses;
-import com.google.inject.Inject;
 import io.bisq.common.Clock;
 import io.bisq.common.GlobalSettings;
 import io.bisq.common.Timer;
@@ -67,9 +66,6 @@ import io.bisq.core.user.DontShowAgainLookup;
 import io.bisq.core.user.Preferences;
 import io.bisq.core.user.User;
 import io.bisq.engine.app.util.Args;
-import io.bisq.gui.common.model.ViewModel;
-import io.bisq.gui.components.BalanceWithConfirmationTextField;
-import io.bisq.gui.components.TxIdTextField;
 import io.bisq.gui.main.PriceFeedComboBoxItem;
 import io.bisq.gui.main.overlays.notifications.NotificationCenter;
 import io.bisq.gui.main.overlays.popups.Popup;
@@ -117,64 +113,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-public class EngineBoot implements ViewModel {
+public class EngineBoot {
     private static final long STARTUP_TIMEOUT_MINUTES = 4;
-
-
-
-    // BTC network
-    final public StringProperty btcInfo = new SimpleStringProperty(Res.get("mainView.footer.btcInfo.initializing"));
-    @SuppressWarnings("ConstantConditions")
-    final public DoubleProperty btcSyncProgress = new SimpleDoubleProperty(DevEnv.STRESS_TEST_MODE ? 0 : -1);
-    final public StringProperty walletServiceErrorMsg = new SimpleStringProperty();
-    final public StringProperty btcSplashSyncIconId = new SimpleStringProperty();
-    private final StringProperty marketPriceCurrencyCode = new SimpleStringProperty("");
-    final public ObjectProperty<PriceFeedComboBoxItem> selectedPriceFeedComboBoxItemProperty = new SimpleObjectProperty<>();
-    final public BooleanProperty isFiatCurrencyPriceFeedSelected = new SimpleBooleanProperty(true);
-    final public BooleanProperty isCryptoCurrencyPriceFeedSelected = new SimpleBooleanProperty(false);
-    final public BooleanProperty isExternallyProvidedPrice = new SimpleBooleanProperty(true);
-    final public BooleanProperty isPriceAvailable = new SimpleBooleanProperty(false);
-    final public BooleanProperty newVersionAvailableProperty = new SimpleBooleanProperty(false);
-    final public IntegerProperty marketPriceUpdated = new SimpleIntegerProperty(0);
-    final public StringProperty availableBalance = new SimpleStringProperty();
-    final public StringProperty reservedBalance = new SimpleStringProperty();
-    final public StringProperty lockedBalance = new SimpleStringProperty();
-    @SuppressWarnings("FieldCanBeLocal")
-    private MonadicBinding<String> btcInfoBinding;
-
-    private final StringProperty marketPrice = new SimpleStringProperty(Res.get("shared.na"));
-
-    // P2P network
-    final public StringProperty p2PNetworkInfo = new SimpleStringProperty();
-    @SuppressWarnings("FieldCanBeLocal")
-    private MonadicBinding<String> p2PNetworkInfoBinding;
-    final public BooleanProperty splashP2PNetworkAnimationVisible = new SimpleBooleanProperty(true);
-    final public StringProperty p2pNetworkWarnMsg = new SimpleStringProperty();
-    final public StringProperty p2PNetworkIconId = new SimpleStringProperty();
-    final public static BooleanProperty bootstrapComplete = new SimpleBooleanProperty();
-    final public BooleanProperty showAppScreen = new SimpleBooleanProperty();
-    final public StringProperty numPendingTradesAsString = new SimpleStringProperty();
-    final public BooleanProperty showPendingTradesNotification = new SimpleBooleanProperty();
-    final public StringProperty numOpenDisputesAsString = new SimpleStringProperty();
-    final public BooleanProperty showOpenDisputesNotification = new SimpleBooleanProperty();
-    private final BooleanProperty isSplashScreenRemoved = new SimpleBooleanProperty();
-    final public StringProperty p2pNetworkLabelId = new SimpleStringProperty("footer-pane");
-
-    @SuppressWarnings("FieldCanBeLocal")
-    public static MonadicBinding<Boolean> allServicesDone, tradesAndUIReady;
-
-    private int numBtcPeers = 0;
-    private Timer checkNumberOfBtcPeersTimer;
-    private Timer checkNumberOfP2pNetworkPeersTimer;
-    private final Map<String, Subscription> disputeIsClosedSubscriptionsMap = new HashMap<>();
-    final public ObservableList<PriceFeedComboBoxItem> priceFeedComboBoxItems = FXCollections.observableArrayList();
-    @SuppressWarnings("FieldCanBeLocal")
-    private MonadicBinding<String> marketPriceBinding;
-    @SuppressWarnings({"unused", "FieldCanBeLocal"})
-    private Subscription priceFeedAllLoadedSubscription;
-    public static BooleanProperty p2pNetWorkReady;
-    public static final BooleanProperty walletInitialized = new SimpleBooleanProperty();
-    public static boolean allBasicServicesInitialized;
 
     public static WalletsManager walletsManager;
     public static WalletsSetup walletsSetup;
@@ -203,9 +143,66 @@ public class EngineBoot implements ViewModel {
     public static ClosedTradableManager closedTradableManager;
     public static AccountAgeWitnessService accountAgeWitnessService;
     public static TorNetworkSettingsWindow torNetworkSettingsWindow;
-    public static BSFormatter formatter;   
+    public static BSFormatter formatter;
+
+    // BTC network
+    public final StringProperty btcInfo = new SimpleStringProperty(Res.get("mainView.footer.btcInfo.initializing"));
+    @SuppressWarnings("ConstantConditions")
+    public final DoubleProperty btcSyncProgress = new SimpleDoubleProperty(DevEnv.STRESS_TEST_MODE ? 0 : -1);
+    public final StringProperty walletServiceErrorMsg = new SimpleStringProperty();
+    public final StringProperty btcSplashSyncIconId = new SimpleStringProperty();
+    private final StringProperty marketPriceCurrencyCode = new SimpleStringProperty("");
+    public final ObjectProperty<PriceFeedComboBoxItem> selectedPriceFeedComboBoxItemProperty = new SimpleObjectProperty<>();
+    public final BooleanProperty isFiatCurrencyPriceFeedSelected = new SimpleBooleanProperty(true);
+    public final BooleanProperty isCryptoCurrencyPriceFeedSelected = new SimpleBooleanProperty(false);
+    public final BooleanProperty isExternallyProvidedPrice = new SimpleBooleanProperty(true);
+    public final BooleanProperty isPriceAvailable = new SimpleBooleanProperty(false);
+    public final BooleanProperty newVersionAvailableProperty = new SimpleBooleanProperty(false);
+    public final IntegerProperty marketPriceUpdated = new SimpleIntegerProperty(0);
+    public final StringProperty availableBalance = new SimpleStringProperty();
+    public final StringProperty reservedBalance = new SimpleStringProperty();
+    public final StringProperty lockedBalance = new SimpleStringProperty();
+    @SuppressWarnings("FieldCanBeLocal")
+    private MonadicBinding<String> btcInfoBinding;
+
+    private final StringProperty marketPrice = new SimpleStringProperty(Res.get("shared.na"));
+
+    // P2P network
+    public final StringProperty p2PNetworkInfo = new SimpleStringProperty();
+    @SuppressWarnings("FieldCanBeLocal")
+    private MonadicBinding<String> p2PNetworkInfoBinding;
+    public final BooleanProperty splashP2PNetworkAnimationVisible = new SimpleBooleanProperty(true);
+    public final StringProperty p2pNetworkWarnMsg = new SimpleStringProperty();
+    public final StringProperty p2PNetworkIconId = new SimpleStringProperty();
+    public final BooleanProperty bootstrapComplete = new SimpleBooleanProperty();
+    public final BooleanProperty showAppScreen = new SimpleBooleanProperty();
+    public final StringProperty numPendingTradesAsString = new SimpleStringProperty();
+    public final BooleanProperty showPendingTradesNotification = new SimpleBooleanProperty();
+    public final StringProperty numOpenDisputesAsString = new SimpleStringProperty();
+    public final BooleanProperty showOpenDisputesNotification = new SimpleBooleanProperty();
+    private final BooleanProperty isSplashScreenRemoved = new SimpleBooleanProperty();
+    public final StringProperty p2pNetworkLabelId = new SimpleStringProperty("footer-pane");
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private MonadicBinding<Boolean> allServicesDone, tradesAndUIReady;
     public static PriceFeedService priceFeedService;
     public static User user;
+    private int numBtcPeers = 0;
+    private Timer checkNumberOfBtcPeersTimer;
+    private Timer checkNumberOfP2pNetworkPeersTimer;
+    private final Map<String, Subscription> disputeIsClosedSubscriptionsMap = new HashMap<>();
+    public final ObservableList<PriceFeedComboBoxItem> priceFeedComboBoxItems = FXCollections.observableArrayList();
+    @SuppressWarnings("FieldCanBeLocal")
+    private MonadicBinding<String> marketPriceBinding;
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
+    private Subscription priceFeedAllLoadedSubscription;
+    private BooleanProperty p2pNetWorkReady;
+    private final BooleanProperty walletInitialized = new SimpleBooleanProperty();
+    private boolean allBasicServicesInitialized;
+
+    public static Coin AvailableBalance = Coin.ZERO;
+    public static Coin ReservedBalance = Coin.ZERO;
+    public static Coin LockedBalance = Coin.ZERO;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // API
@@ -232,11 +229,11 @@ public class EngineBoot implements ViewModel {
                     preferences.setTacAccepted(true);
                     checkIfLocalHostNodeIsRunning();
                 }).show();
-                
+
                 //TODO push notifications to Websocket.
-                               
+
             }, 1);
-        } else {          
+        } else {
             checkIfLocalHostNodeIsRunning();
         }
     }
@@ -258,7 +255,7 @@ public class EngineBoot implements ViewModel {
             // TODO that seems to be called too often if Tor takes longer to start up...
             if (newValue && !p2pNetWorkReady.get()){
                 showTorNetworkSettingsWindow();
-            }               
+            }
         };
 
         Timer startupTimeout = UserThread.runAfter(() -> {
@@ -266,7 +263,7 @@ public class EngineBoot implements ViewModel {
             if (walletsManager.areWalletsEncrypted()){
                 walletInitialized.addListener(walletInitializedListener);
             }else{
-                showTorNetworkSettingsWindow();               
+                showTorNetworkSettingsWindow();
             }
         }, STARTUP_TIMEOUT_MINUTES, TimeUnit.MINUTES);
 
@@ -298,7 +295,7 @@ public class EngineBoot implements ViewModel {
 
     private void showTorNetworkSettingsWindow() {
         if(Args.gui) torNetworkSettingsWindow.show();
-        
+
         //TODO push notifications to Websocket.
     }
 
@@ -487,15 +484,15 @@ public class EngineBoot implements ViewModel {
                                 if(Args.gui) new Popup<>().warning(Res.get("popup.warning.startupFailed.twoInstances"))
                                     .useShutDownButton()
                                     .show();
-                                
+
                                 //TODO push notifications to Websocket.
-                                
+
                             } else {
                                 if(Args.gui) new Popup<>().warning(Res.get("error.spvFileCorrupted", exception.getMessage()))
                                     .actionButtonText(Res.get("settings.net.reSyncSPVChainButton"))
                                     .onAction(() -> GUIUtil.reSyncSPVChain(walletsSetup, preferences))
                                     .show();
-                                
+
                                 //TODO push notifications to Websocket.
                             }
                         } else {
@@ -530,12 +527,12 @@ public class EngineBoot implements ViewModel {
                                 })
                                 .hideCloseButton()
                                 .show();
-                        
+
                         //TODO push notifications to Websocket.
-                        
+
                     } else {
                         if (preferences.isResyncSpvRequested()) {
-                            showFirstPopupIfResyncSPVRequested();                           
+                            showFirstPopupIfResyncSPVRequested();
                         } else {
                             walletInitialized.set(true);
                         }
@@ -574,9 +571,9 @@ public class EngineBoot implements ViewModel {
             if(Args.gui) new Popup<>()
                 .warning(Res.get("popup.error.takeOfferRequestFailed", errorMessage))
                 .show();
-            
+
             //TODO push notifications to Websocket.
-            
+
         });
 
         // walletService
@@ -595,7 +592,7 @@ public class EngineBoot implements ViewModel {
         arbitratorManager.onAllServicesInitialized();
         alertManager.alertMessageProperty().addListener((observable, oldValue, newValue) -> displayAlertIfPresent(newValue, false));
         privateNotificationManager.privateNotificationProperty().addListener((observable, oldValue, newValue) -> displayPrivateNotification(newValue));
-        
+
         displayAlertIfPresent(alertManager.alertMessageProperty().get(), false);
 
         p2PService.onAllServicesInitialized();
@@ -605,10 +602,10 @@ public class EngineBoot implements ViewModel {
 
         daoManager.onAllServicesInitialized(errorMessage -> {
             if(Args.gui) new Popup<>().error(errorMessage).show();
-            
+
             //TODO push notifications to Websocket.
-            
-            
+
+
         });
 
         tradeStatisticsManager.onAllServicesInitialized();
@@ -622,14 +619,14 @@ public class EngineBoot implements ViewModel {
             if (filter != null) {
                 if (filter.getSeedNodes() != null && !filter.getSeedNodes().isEmpty())
                     if(Args.gui) new Popup<>().warning(Res.get("popup.warning.nodeBanned", Res.get("popup.warning.seed"))).show();
-                    
+
                     //TODO push notifications to Websocket.
-                
+
                 if (filter.getPriceRelayNodes() != null && !filter.getPriceRelayNodes().isEmpty())
                     if(Args.gui) new Popup<>().warning(Res.get("popup.warning.nodeBanned", Res.get("popup.warning.priceRelay"))).show();
-            
+
                     //TODO push notifications to Websocket.
-            
+
             }
         });
 
@@ -654,9 +651,9 @@ public class EngineBoot implements ViewModel {
                         .information(Res.get("popup.securityRecommendation.msg"))
                         .dontShowAgainId(key)
                         .show();
-                
+
                 //TODO push notifications to Websocket.
-                
+
             }
         });
 
@@ -671,9 +668,9 @@ public class EngineBoot implements ViewModel {
     private void showFirstPopupIfResyncSPVRequested() {
         Popup firstPopup = Args.gui?new Popup<>():null;
         if(Args.gui) firstPopup.information(Res.get("settings.net.reSyncSPVAfterRestart")).show();
-        
+
         //TODO push notifications to Websocket.
-        
+
         if (btcSyncProgress.get() == 1) {
             showSecondPopupIfResyncSPVRequested(firstPopup);
         } else {
@@ -691,9 +688,9 @@ public class EngineBoot implements ViewModel {
                 .hideCloseButton()
                 .useShutDownButton()
                 .show();
-        
+
         //TODO push notifications to Websocket.
-        
+
     }
 
     public void checkIfLocalHostNodeIsRunning() {
@@ -766,13 +763,13 @@ public class EngineBoot implements ViewModel {
                             .useShutDownButton()
                             .useReportBugButton()
                             .show());
-                    
+
                     //TODO push notifications to Websocket.
-                    
+
                     if(!Args.gui){
                         //TODO force graceful shutdown
                     }
-                    
+
                 }
             }
         };
@@ -795,10 +792,10 @@ public class EngineBoot implements ViewModel {
                     .onAction(() -> openOfferManager.removeOpenOffers(outDatedOffers, null))
                     .useShutDownButton()
                     .show();
-            
+
             //TODO push notifications to Websocket.
-            
-            
+
+
         }
     }
 
@@ -863,9 +860,9 @@ public class EngineBoot implements ViewModel {
                                         trade.getShortId(),
                                         formatter.formatDateTime(maxTradePeriodDate)))
                                         .show();
-                                
+
                                 //TODO push notifications to Websocket.
-                                
+
                             }
                             break;
                         case TRADE_PERIOD_OVER:
@@ -876,9 +873,9 @@ public class EngineBoot implements ViewModel {
                                         trade.getShortId(),
                                         formatter.formatDateTime(maxTradePeriodDate)))
                                         .show();
-                                
+
                                 //TODO push notifications to Websocket.
-                                
+
                             }
                             break;
                     }
@@ -1067,9 +1064,9 @@ public class EngineBoot implements ViewModel {
                                 preferences.dontShowAgain(key, true); // ignore update
                             })
                             .show();
-                    
+
                     //TODO push notifications to Websocket.
-                    
+
                 }
             } else {
                 final Alert displayedAlert = user.getDisplayedAlert();
@@ -1080,7 +1077,7 @@ public class EngineBoot implements ViewModel {
                                 user.setDisplayedAlert(alert);
                             })
                             .show();
-                
+
                 //TODO push notifications to Websocket.
             }
         }
@@ -1093,9 +1090,9 @@ public class EngineBoot implements ViewModel {
                 .onClose(privateNotificationManager::removePrivateNotification)
                 .useIUnderstandButton()
                 .show();
-        
+
         //TODO push notifications to Websocket.
-       
+
     }
 
     private void swapPendingOfferFundingEntries() {
@@ -1107,7 +1104,7 @@ public class EngineBoot implements ViewModel {
                 });
     }
 
-    private void updateBalance() {
+    public void updateBalance() {
         // Without delaying to the next cycle it does not update.
         // Seems order of events we are listening on causes that...
         UserThread.execute(() -> {
@@ -1115,21 +1112,26 @@ public class EngineBoot implements ViewModel {
             updateReservedBalance();
             updateLockedBalance();
         });
+        System.out.println("__________________________________updateBalance_________________________________________");
     }
 
     private void updateAvailableBalance() {
-        Coin totalAvailableBalance = Coin.valueOf(tradeManager.getAddressEntriesForAvailableBalanceStream()
+        Coin aBalance = Coin.valueOf(tradeManager.getAddressEntriesForAvailableBalanceStream()
                 .mapToLong(addressEntry -> btcWalletService.getBalanceForAddress(addressEntry.getAddress()).getValue())
                 .sum());
-        String value = formatter.formatCoinWithCode(totalAvailableBalance);
+        String value = formatter.formatCoinWithCode(aBalance);
         // If we get full precision the BTC postfix breaks layout so we omit it
         if (value.length() > 11)
-            value = formatter.formatCoin(totalAvailableBalance);
+            value = formatter.formatCoin(aBalance);
         availableBalance.set(value);
+
+        //AvailableBalance.negate();
+        AvailableBalance = aBalance;
+        System.out.println("__________________________________updateAvailableBalance_________________________________________");
     }
 
     private void updateReservedBalance() {
-        Coin sum = Coin.valueOf(openOfferManager.getObservableList().stream()
+        Coin rBalance = Coin.valueOf(openOfferManager.getObservableList().stream()
                 .map(openOffer -> {
                     final Optional<AddressEntry> addressEntryOptional = btcWalletService.getAddressEntry(openOffer.getId(), AddressEntry.Context.RESERVED_FOR_TRADE);
                     if (addressEntryOptional.isPresent()) {
@@ -1142,14 +1144,15 @@ public class EngineBoot implements ViewModel {
                 .filter(e -> e != null)
                 .mapToLong(Coin::getValue)
                 .sum());
-
-        reservedBalance.set(formatter.formatCoinWithCode(sum));
+        reservedBalance.set(formatter.formatCoinWithCode(rBalance));
+        ReservedBalance = rBalance;
+        System.out.println("__________________________________updateReservedBalance_________________________________________");
     }
 
     private void updateLockedBalance() {
         Stream<Trade> lockedTrades = Stream.concat(closedTradableManager.getLockedTradesStream(), failedTradesManager.getLockedTradesStream());
         lockedTrades = Stream.concat(lockedTrades, tradeManager.getLockedTradesStream());
-        Coin sum = Coin.valueOf(lockedTrades
+        Coin lBalance = Coin.valueOf(lockedTrades
                 .mapToLong(trade -> {
                     final Optional<AddressEntry> addressEntryOptional = btcWalletService.getAddressEntry(trade.getId(), AddressEntry.Context.MULTI_SIG);
                     if (addressEntryOptional.isPresent())
@@ -1158,7 +1161,9 @@ public class EngineBoot implements ViewModel {
                         return 0;
                 })
                 .sum());
-        lockedBalance.set(formatter.formatCoinWithCode(sum));
+        lockedBalance.set(formatter.formatCoinWithCode(lBalance));
+        LockedBalance = lBalance;
+        System.out.println("__________________________________updateLockedBalance_________________________________________");
     }
 
     private void checkForLockedUpFunds() {
@@ -1185,9 +1190,9 @@ public class EngineBoot implements ViewModel {
                             formatter.formatCoinWithCode(balance), e.getAddressString(), e.getOfferId());
                     log.warn(message);
                     if(Args.gui) new Popup<>().warning(message).show();
-                    
+
                     //TODO push notifications to Websocket.
-                    
+
                 });
     }
 
@@ -1250,9 +1255,9 @@ public class EngineBoot implements ViewModel {
                                 })
                                 .hideCloseButton()
                                 .show();
-                        
+
                         //TODO push notifications to Websocket.
-                        
+
                     });
         }
     }
