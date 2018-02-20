@@ -35,6 +35,7 @@ import io.bisq.gui.main.overlays.notifications.NotificationCenter;
 import io.bisq.gui.util.BSFormatter;
 import io.bisq.network.crypto.EncryptionService;
 import io.bisq.network.p2p.P2PService;
+import org.bitcoinj.core.Coin;
 
 public class HeadlessConstructor extends EngineBoot{
 
@@ -46,10 +47,9 @@ public class HeadlessConstructor extends EngineBoot{
     private final TradeManager tradeManager;
     private final OpenOfferManager openOfferManager;
     private final DisputeManager disputeManager;
-    final Preferences preferences;
+    private final Preferences preferences;
     private final AlertManager alertManager;
     private final PrivateNotificationManager privateNotificationManager;
-    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private final FilterManager filterManager;
     private final TradeStatisticsManager tradeStatisticsManager;
     private final NotificationCenter notificationCenter;

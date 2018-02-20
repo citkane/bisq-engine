@@ -200,9 +200,9 @@ public class EngineBoot {
     private final BooleanProperty walletInitialized = new SimpleBooleanProperty();
     private boolean allBasicServicesInitialized;
 
-    public static Coin AvailableBalance = Coin.ZERO;
-    public static Coin ReservedBalance = Coin.ZERO;
-    public static Coin LockedBalance = Coin.ZERO;
+    public static Coin AvailableBalance;
+    public static Coin ReservedBalance;
+    public static Coin LockedBalance;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // API
@@ -1112,7 +1112,6 @@ public class EngineBoot {
             updateReservedBalance();
             updateLockedBalance();
         });
-        System.out.println("__________________________________updateBalance_________________________________________");
     }
 
     private void updateAvailableBalance() {
@@ -1127,7 +1126,6 @@ public class EngineBoot {
 
         //AvailableBalance.negate();
         AvailableBalance = aBalance;
-        System.out.println("__________________________________updateAvailableBalance_________________________________________");
     }
 
     private void updateReservedBalance() {
@@ -1146,7 +1144,6 @@ public class EngineBoot {
                 .sum());
         reservedBalance.set(formatter.formatCoinWithCode(rBalance));
         ReservedBalance = rBalance;
-        System.out.println("__________________________________updateReservedBalance_________________________________________");
     }
 
     private void updateLockedBalance() {
@@ -1163,7 +1160,6 @@ public class EngineBoot {
                 .sum());
         lockedBalance.set(formatter.formatCoinWithCode(lBalance));
         LockedBalance = lBalance;
-        System.out.println("__________________________________updateLockedBalance_________________________________________");
     }
 
     private void checkForLockedUpFunds() {

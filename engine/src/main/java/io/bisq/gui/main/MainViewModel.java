@@ -29,7 +29,6 @@ import io.bisq.core.trade.statistics.TradeStatisticsManager;
 import io.bisq.core.user.Preferences;
 import io.bisq.core.user.User;
 import io.bisq.engine.EngineBoot;
-import io.bisq.gui.common.model.ViewModel;
 import io.bisq.gui.components.BalanceWithConfirmationTextField;
 import io.bisq.gui.components.TxIdTextField;
 import io.bisq.gui.main.overlays.notifications.NotificationCenter;
@@ -39,10 +38,8 @@ import io.bisq.gui.main.overlays.windows.WalletPasswordWindow;
 import io.bisq.gui.util.BSFormatter;
 import io.bisq.network.crypto.EncryptionService;
 import io.bisq.network.p2p.P2PService;
-import javafx.beans.property.*;
 
 public class MainViewModel extends EngineBoot{
-
     private final WalletsManager walletsManager;
     private final WalletsSetup walletsSetup;
     private final BtcWalletService btcWalletService;
@@ -54,7 +51,6 @@ public class MainViewModel extends EngineBoot{
     final Preferences preferences;
     private final AlertManager alertManager;
     private final PrivateNotificationManager privateNotificationManager;
-    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private final FilterManager filterManager;
     private final WalletPasswordWindow walletPasswordWindow;
     private final TradeStatisticsManager tradeStatisticsManager;

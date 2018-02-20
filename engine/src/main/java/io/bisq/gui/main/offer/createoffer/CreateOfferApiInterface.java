@@ -11,8 +11,8 @@ import io.bisq.common.monetary.Price;
 import io.bisq.core.offer.Offer;
 import io.bisq.core.offer.OfferPayload;
 import io.bisq.core.payment.PaymentAccount;
-import io.bisq.engine.app.api.Data.Message;
-import static io.bisq.engine.app.api.Data.*;
+import io.bisq.engine.app.api.ApiData.Message;
+import static io.bisq.engine.app.api.ApiData.*;
 import org.bitcoinj.core.Coin;
 
 import java.math.BigDecimal;
@@ -32,10 +32,15 @@ public interface CreateOfferApiInterface {
 
         CreateOfferDataModel createOffer = injector.getInstance(CreateOfferDataModel.class);
 
+        if(paymentAccount.getSelectedTradeCurrency() == null){
+            paymentAccount.setSelectedTradeCurrency(paymentAccount.getTradeCurrencies().get(0));
+            paymentAccount.getTradeCurrencies().get(0);
+        }
+
         TradeCurrency tradeCurrency = paymentAccount.getSelectedTradeCurrency();
         String priceCode = paymentAccount.getSelectedTradeCurrency().getCode();
 
-        createOffer.setUseMarketBasedPrice(priceModel.equals("PERCENTAGE")?true:false);
+        createOffer.setUseMarketBasedPrice(priceModel.equals("PERCENTAGE"));
         createOffer.setAmount(Coin.valueOf(amount));
 
         if(minAmount == null || minAmount == 0) minAmount = amount;
@@ -84,6 +89,20 @@ public interface CreateOfferApiInterface {
             return message;
         }
 
+        Coin fee = offer.getMakerFee();
+        if(dir.toString()=="SELL") fee = fee.add(offer.getAmount());
+        if (rootView.AvailableBalance.isLessThan(fee)){
+            message.success = false;
+            message.message = "Insufficient funds for offer in wallet";
+            return message;
+        }
+        System.out.println("-------------------------------------------------------------------------------");
+        System.out.println(rootView.AvailableBalance.toFriendlyString());
+        System.out.println(fee.toFriendlyString());
+        System.out.println(rootView.AvailableBalance.isLessThan(fee));
+        Coin test = rootView.AvailableBalance.negate();
+        System.out.println(test.isLessThan(fee));
+        System.out.println("-------------------------------------------------------------------------------");
         if(commit){
             checkNotNull(createOffer.getMakerFee(), "makerFee must not be null");
             createOffer.estimateTxSize();

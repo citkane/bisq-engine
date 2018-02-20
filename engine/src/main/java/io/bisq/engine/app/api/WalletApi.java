@@ -1,12 +1,9 @@
 package io.bisq.engine.app.api;
 
 import io.bisq.core.btc.AddressEntry;
-import io.bisq.engine.EngineBoot;
-import io.bisq.engine.app.util.Args;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
-import org.bitcoinj.core.Address;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +16,7 @@ import static org.springframework.util.MimeTypeUtils.*;
 @RestController
 @RequestMapping("/api/wallet")
 @Api(tags = {"Wallet"})
-public class WalletApi extends Data{
+public class WalletApi extends ApiData {
 
     public static class BalanceJson{
         public ItemJson available = new ItemJson();
@@ -32,9 +29,8 @@ public class WalletApi extends Data{
     }
     @RequestMapping(value = "/btcBalance", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get the BTC wallet balance")
-    public BalanceJson getBalance(){
-
-
+    public BalanceJson getBalance() throws Exception {
+        checkErrors();
 
         BalanceJson balance = new BalanceJson();
         rootView.updateBalance();

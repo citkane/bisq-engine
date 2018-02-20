@@ -22,6 +22,7 @@ import io.bisq.core.dao.DaoManager;
 import io.bisq.core.filter.FilterManager;
 import io.bisq.core.offer.OpenOfferManager;
 import io.bisq.core.payment.AccountAgeWitnessService;
+import io.bisq.core.payment.payload.PaymentMethod;
 import io.bisq.core.provider.fee.FeeService;
 import io.bisq.core.provider.price.PriceFeedService;
 import io.bisq.core.trade.TradeManager;
@@ -40,7 +41,11 @@ import io.bisq.gui.main.offer.offerbook.OfferBook;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-public class Data {
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
+
+public class ApiData {
 
     public static WalletsManager walletsManager;
     public static WalletsSetup walletsSetup;
@@ -133,6 +138,16 @@ public class Data {
         public static final class ServerError extends Exception {
             public ServerError() {}
         }
+        @ResponseStatus(code = HttpStatus.PRECONDITION_REQUIRED, reason = "BISQ terms and conditions have not been accepted. hint: go to 'Preferences")
+        public static final class TACerror extends Exception {
+            public TACerror() {}
+        }
     }
 
+    public static void checkErrors() throws Exception {
+        if(!preferences.isTacAccepted()) throw new error.TACerror();
+    }
+
+    //public static List<String> pm = PaymentMethod.getAllValues().stream().map(PaymentMethod::getId).collect(toList());
+    //public static final String P_METHODS = String.join(",",pm);
 }

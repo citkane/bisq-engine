@@ -27,7 +27,7 @@ import static io.bisq.gui.main.offer.createoffer.CreateOfferApiInterface.getOffe
 @RestController
 @RequestMapping("/api/offers")
 @Api(tags = {"Offers"})
-public class OfferApi  extends Data implements CreateOfferApiInterface{
+public class OfferApi extends ApiData implements CreateOfferApiInterface{
 
     public static class OfferJson{
         public String id;
@@ -89,13 +89,12 @@ public class OfferApi  extends Data implements CreateOfferApiInterface{
     public List<OfferJson> listOffers(
         @RequestParam(value = "Optionally filter by currency code", required=false)
         String currency
-    ){
+    ) throws Exception {
+        checkErrors();
+
         List<OfferJson> list = offerBookService.getOffers().stream().filter(
             offer->currency == null || offer.getCurrencyCode().equals(currency)
-        ).map(offer->{
-            OfferJson offr = Map(offer);
-            return offr;
-        }).collect(toList());
+        ).map(this::Map).collect(toList());
         return list;
     }
 
@@ -105,12 +104,11 @@ public class OfferApi  extends Data implements CreateOfferApiInterface{
             @RequestParam(value = "The offer id", required=true)
             String offerId
     ) throws Exception {
+        checkErrors();
+
         List<OfferJson> list = offerBookService.getOffers().stream().filter(
                 offer->offer.getId().equals(offerId)
-        ).map(offer->{
-            OfferJson offr = Map(offer);
-            return offr;
-        }).collect(toList());
+        ).map(this::Map).collect(toList());
 
         if(list.isEmpty())
             throw new error.NotFound();
@@ -125,6 +123,8 @@ public class OfferApi  extends Data implements CreateOfferApiInterface{
             @RequestParam(value = "offerId")
             String offerId
     ) throws Exception {
+        checkErrors();
+
         Message message = new Message();
         Optional<OpenOffer> toDelete = openOfferManager.getOpenOfferById(offerId);
         if(!toDelete.isPresent()){
@@ -174,7 +174,8 @@ public class OfferApi  extends Data implements CreateOfferApiInterface{
         @RequestParam(value = "commit", defaultValue = "false")
         boolean commit
 
-    ){
+    ) throws Exception {
+        checkErrors();
 
         Message message = new Message();
 

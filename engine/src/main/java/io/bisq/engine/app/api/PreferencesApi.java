@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/preferences")
 @Api(tags = {"Preferences"})
-public class PreferencesApi extends Data{
+public class PreferencesApi extends ApiData {
 
     @RequestMapping(value = "/isTacAccepted", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Check if the user has accepted BISQ terms and conditions")

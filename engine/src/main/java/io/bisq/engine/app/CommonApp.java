@@ -54,7 +54,7 @@ import io.bisq.core.trade.failed.FailedTradesManager;
 import io.bisq.core.user.Preferences;
 import io.bisq.core.user.User;
 import io.bisq.engine.HeadlessConstructor;
-import io.bisq.engine.app.api.Data;
+import io.bisq.engine.app.api.ApiData;
 import io.bisq.engine.app.util.Args;
 import io.bisq.gui.Navigation;
 import io.bisq.gui.SystemTray;
@@ -193,7 +193,7 @@ public class CommonApp extends Application{
             engineAppModule = new EngineAppModule(bisqEnvironment, primaryStage);
             injector = Guice.createInjector(engineAppModule);
             if(Args.gui) injector.getInstance(InjectorViewFactory.class).setInjector(injector);
-            if(Args.http) Data.inject(injector);
+            if(Args.http) ApiData.inject(injector);
 
             // All classes which are persisting objects need to be added here
             // Maintain order!
