@@ -98,6 +98,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static io.bisq.engine.app.EngineAppMain.BisqEngine;
+
 public class CommonApp extends Application{
     private static final Logger log = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CommonApp.class);
 
@@ -119,8 +121,6 @@ public class CommonApp extends Application{
     private final List<String> corruptedDatabaseFiles = new ArrayList<>();
     private MainView mainView;
     private boolean shutDownRequested;
-    Thread API;
-
 
     // NOTE: This method is not called on the JavaFX Application Thread.
     @Override
@@ -135,6 +135,8 @@ public class CommonApp extends Application{
         if(Args.gui){
             UserThread.setExecutor(Platform::runLater);
             UserThread.setTimerClass(UITimer.class);
+        }else{
+            UserThread.setExecutor((Runnable foo)->BisqEngine.execute(foo));
         }
 
         shutDownHandler = this::stop;

@@ -22,7 +22,6 @@ import io.bisq.core.dao.DaoManager;
 import io.bisq.core.filter.FilterManager;
 import io.bisq.core.offer.OpenOfferManager;
 import io.bisq.core.payment.AccountAgeWitnessService;
-import io.bisq.core.payment.payload.PaymentMethod;
 import io.bisq.core.provider.fee.FeeService;
 import io.bisq.core.provider.price.PriceFeedService;
 import io.bisq.core.trade.TradeManager;
@@ -33,6 +32,9 @@ import io.bisq.core.user.Preferences;
 import io.bisq.core.user.User;
 import io.bisq.gui.main.overlays.notifications.NotificationCenter;
 import io.bisq.gui.util.BSFormatter;
+import io.bisq.gui.util.validation.BICValidator;
+import io.bisq.gui.util.validation.IBANValidator;
+import io.bisq.gui.util.validation.InputValidator;
 import io.bisq.network.crypto.EncryptionService;
 import io.bisq.network.p2p.P2PService;
 import io.bisq.core.offer.OfferBookService;
@@ -41,9 +43,10 @@ import io.bisq.gui.main.offer.offerbook.OfferBook;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.List;
+import java.util.concurrent.ExecutorService;
 
-import static java.util.stream.Collectors.toList;
+import static io.bisq.engine.app.EngineAppMain.BisqEngine;
+
 
 public class ApiData {
 
@@ -76,11 +79,15 @@ public class ApiData {
     public static OfferBookService offerBookService;
     public static OfferBook offerBook;
     public static EngineBoot rootView;
+    public static ExecutorService exec = BisqEngine;
+
+
+    //public static String threadName;
 
     public static Injector injector;
 
     public static class Message{
-        public Boolean success = true;
+        public Boolean success;
         public String message;
         public Object data;
     };
@@ -120,6 +127,14 @@ public class ApiData {
 
         rootView = injector.getInstance(EngineBoot.class);
 
+
+
+    }
+
+    public static class valid{
+        public static IBANValidator ibanValidator = new IBANValidator();
+        public static BICValidator bicValidator = new BICValidator();
+        public static InputValidator inputValidator = new InputValidator();
     }
 
     /*Exception Handlers*/
@@ -146,8 +161,6 @@ public class ApiData {
 
     public static void checkErrors() throws Exception {
         if(!preferences.isTacAccepted()) throw new error.TACerror();
+        if(user.getPaymentAccounts() == null) throw new error.ServerError();
     }
-
-    //public static List<String> pm = PaymentMethod.getAllValues().stream().map(PaymentMethod::getId).collect(toList());
-    //public static final String P_METHODS = String.join(",",pm);
 }

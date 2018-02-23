@@ -5,29 +5,39 @@
  */
 package io.bisq.engine.app.api;
 
+import com.google.common.util.concurrent.MoreExecutors;
+import io.bisq.common.UserThread;
 import io.bisq.core.offer.Offer;
 import io.bisq.core.offer.OfferPayload;
 import io.bisq.core.offer.OpenOffer;
 import io.bisq.core.payment.PaymentAccount;
-
+import io.bisq.gui.main.offer.createoffer.CreateOfferApiInterface;
+import static io.bisq.gui.main.offer.createoffer.CreateOfferApiInterface.*;
+import io.bisq.gui.main.offer.takeoffer.TakeOfferApiInterface;
+import static io.bisq.gui.main.offer.takeoffer.TakeOfferApiInterface.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.MimeTypeUtils.*;
+
+import org.bitcoinj.core.Coin;
 import org.springframework.web.bind.annotation.*;
 
-import io.bisq.gui.main.offer.createoffer.CreateOfferApiInterface;
-import static io.bisq.gui.main.offer.createoffer.CreateOfferApiInterface.getOffer;
+import static io.bisq.engine.app.EngineAppMain.BisqEngine;
 
 @RestController
 @RequestMapping("/api/offers")
 @Api(tags = {"Offers"})
-public class OfferApi extends ApiData implements CreateOfferApiInterface{
+public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOfferApiInterface {
 
     public static class OfferJson{
         public String id;
@@ -84,7 +94,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface{
         return offr;
     }
 
-    @RequestMapping(value = "/", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/list", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get a list of all open offers")
     public List<OfferJson> listOffers(
         @RequestParam(value = "Optionally filter by currency code", required=false)
@@ -98,7 +108,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface{
         return list;
     }
 
-    @RequestMapping(value = "/offer", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/detail", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get details of a single offer")
     public OfferJson offerById(
             @RequestParam(value = "The offer id", required=true)
@@ -116,33 +126,28 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface{
         return list.get(0);
     }
 
-    @RequestMapping(value = "/offerCancel", method= RequestMethod.DELETE, produces = APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Cancel one of your own offers.")
-    public Message offerCancel(
-            @ApiParam(value = "The id of the offer", required=true)
-            @RequestParam(value = "offerId")
-            String offerId
+    @RequestMapping(value = "/offerTake", method= RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Accept an offer")
+    public Message offerTake(
+            @RequestParam(value = "The offer id", required=true)
+            String offerId,
+
+            @RequestParam(value = "The payment account id", required=true)
+            String accountId,
+
+            @ApiParam(value = "The trade amount in base units (eg. <0.1> for 0.1 BTC). Will set to offer maximum if left blank")
+            @RequestParam(value = "Amount", required = false)
+            BigDecimal Amount
+
     ) throws Exception {
         checkErrors();
 
-        Message message = new Message();
-        Optional<OpenOffer> toDelete = openOfferManager.getOpenOfferById(offerId);
-        if(!toDelete.isPresent()){
-            message.message = "Offer "+offerId+" is not available for deletion.";
-            message.success = false;
-            return message;
-        }
-        OpenOffer Delete = toDelete.get();
-        openOfferManager.removeOpenOffer(Delete,()->{
-            message.message = "Offer " + offerId + " was removed.";
-        },(err)->{
-            message.message = "Error: "+err;
-            message.success = false;
-        });
-        return message;
+        return takeOffer(offerId,accountId,Amount);
+
     }
 
-    @RequestMapping(value = "/makeOffer", method= RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
+
+    @RequestMapping(value = "/offerMake", method= RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Create a new offer.")
     public Message makeOffer(
 
@@ -177,33 +182,47 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface{
     ) throws Exception {
         checkErrors();
 
-        Message message = new Message();
 
-        PaymentAccount paymentAccount = user.getPaymentAccount(paymentAccountId);
-        if(paymentAccount == null){
-            message.success = false;
-            message.message = "Payment account was not found";
+        Message message = getOffer(paymentAccountId,direction,Amount,MinAmount,priceModel,price,commit);
+
+        if(message.data != null){
+            message.data = Map((Offer) message.data);
+        }
+        if(message.success == null || message.success){
+            if(!commit){
+                message.success = true;
+                message.message = "Offer is valid but NOT committed";
+            }
+            return message;
+        }else{
             return message;
         }
+    }
 
-        long amount = Amount.multiply(new BigDecimal(100000000)).longValue();
-        Long minAmount = (MinAmount != null)?MinAmount.multiply(new BigDecimal(100000000)).longValue():null;
-        OfferPayload.Direction dir = direction.equals("BUY")?OfferPayload.Direction.BUY:OfferPayload.Direction.SELL;
 
-        Message readyOffer = getOffer(paymentAccount,amount,minAmount,priceModel,price,dir,commit);
+    @RequestMapping(value = "/offerCancel", method= RequestMethod.DELETE, produces = APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Cancel one of your own offers.")
+    public Message offerCancel(
+            @ApiParam(value = "The id of the offer", required=true)
+            @RequestParam(value = "offerId")
+                    String offerId
+    ) throws Exception {
+        checkErrors();
 
-        OfferJson data;
-        if(readyOffer.data != null){
-            readyOffer.data = Map((Offer) readyOffer.data);
+        Message message = new Message();
+        Optional<OpenOffer> toDelete = openOfferManager.getOpenOfferById(offerId);
+        if(!toDelete.isPresent()){
+            message.message = "Offer "+offerId+" is not available for deletion.";
+            message.success = false;
+            return message;
         }
-
-        if(readyOffer.success){
-            if(!commit){
-                readyOffer.message = "Offer is valid but NOT committed";
-            }
-            return readyOffer;
-        }else{
-            return readyOffer;
-        }
+        OpenOffer Delete = toDelete.get();
+        openOfferManager.removeOpenOffer(Delete,()->{
+            message.message = "Offer " + offerId + " was removed.";
+        },(err)->{
+            message.message = "Error: "+err;
+            message.success = false;
+        });
+        return message;
     }
 }

@@ -70,6 +70,7 @@ public class EngineAppModule extends AppModule {
         bind(BisqEnvironment.class).toInstance((BisqEnvironment) environment);
 
         if(Args.gui) bind(CachingViewLoader.class).in(Singleton.class);
+
         bind(KeyStorage.class).in(Singleton.class);
         bind(KeyRing.class).in(Singleton.class);
         bind(User.class).in(Singleton.class);

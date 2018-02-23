@@ -16,26 +16,47 @@ import static io.bisq.engine.app.api.ApiData.*;
 import org.bitcoinj.core.Coin;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.concurrent.TimeUnit;
 
 public interface CreateOfferApiInterface {
 
     static Message getOffer(
-            PaymentAccount paymentAccount,
-            long amount,
-            Long minAmount,
+            String paymentAccountId,
+            String direction,
+            BigDecimal Amount,
+            BigDecimal MinAmount,
             String priceModel,
             BigDecimal price,
-            OfferPayload.Direction dir,
             boolean commit
-    ){
+    ) throws InterruptedException {
         Message message = new Message();
 
         CreateOfferDataModel createOffer = injector.getInstance(CreateOfferDataModel.class);
 
-        if(paymentAccount.getSelectedTradeCurrency() == null){
-            paymentAccount.setSelectedTradeCurrency(paymentAccount.getTradeCurrencies().get(0));
-            paymentAccount.getTradeCurrencies().get(0);
+
+
+        PaymentAccount paymentAccount = user.getPaymentAccount(paymentAccountId);
+        if(paymentAccount == null){
+            message.success = false;
+            message.message = "Payment account was not found";
+            //setMessage(message);
+            return message;
         }
+
+        long amount = Amount.multiply(new BigDecimal(100000000)).longValue();
+        Long minAmount = (MinAmount != null)?MinAmount.multiply(new BigDecimal(100000000)).longValue():null;
+        OfferPayload.Direction dir = direction.equals("BUY")?OfferPayload.Direction.BUY:OfferPayload.Direction.SELL;
+
+        if(paymentAccount.getTradeCurrencies().isEmpty()){
+            message.success = false;
+            message.message = "Could not find a currency for the account";
+            //setMessage(message);
+            return message;
+        }else if(paymentAccount.getSelectedTradeCurrency() == null){
+            paymentAccount.setSelectedTradeCurrency(paymentAccount.getTradeCurrencies().get(0));
+        }
+
 
         TradeCurrency tradeCurrency = paymentAccount.getSelectedTradeCurrency();
         String priceCode = paymentAccount.getSelectedTradeCurrency().getCode();
@@ -49,22 +70,25 @@ public interface CreateOfferApiInterface {
         if(!createOffer.isMinAmountLessOrEqualAmount()){
             message.success = false;
             message.message = "Minimum amount must be less than or equal to amount";
+            //setMessage(message);
             return message;
         }
 
         if(priceModel.equals("PERCENTAGE")){
 
-            if(!priceFeedService.getMarketPrice(priceCode).isPriceAvailable()){
+            if(priceFeedService.getMarketPrice(priceCode) == null || !priceFeedService.getMarketPrice(priceCode).isPriceAvailable()){
                 message.success = false;
                 message.message = "Could not get a price feed";
+                //setMessage(message);
                 return message;
             }
 
             double max = preferences.getMaxPriceDistanceInPercent();
-            double margin = price.divide(new BigDecimal(100)).doubleValue();
+            double margin = price.divide(new BigDecimal(100),5, RoundingMode.CEILING).doubleValue();
             if (Math.abs(margin) > max) {
                 message.success = false;
                 message.message = "Price margin is greater than set in the user preferences";
+                //setMessage(message);
                 return message;
             }
             createOffer.setMarketPriceAvailable(true);
@@ -86,23 +110,19 @@ public interface CreateOfferApiInterface {
         if(offer.getAmount().compareTo(offer.getPaymentMethod().getMaxTradeLimitAsCoin(offer.getCurrencyCode())) > 0){
             message.success = false;
             message.message = "Amount is larger than " + offer.getPaymentMethod().getMaxTradeLimitAsCoin(offer.getCurrencyCode()).toFriendlyString();
+            //setMessage(message);
             return message;
         }
 
         Coin fee = offer.getMakerFee();
-        if(dir.toString()=="SELL") fee = fee.add(offer.getAmount());
+        if(dir.toString().equals("SELL")) fee = fee.add(offer.getAmount());
         if (rootView.AvailableBalance.isLessThan(fee)){
             message.success = false;
             message.message = "Insufficient funds for offer in wallet";
+            //setMessage(message);
             return message;
         }
-        System.out.println("-------------------------------------------------------------------------------");
-        System.out.println(rootView.AvailableBalance.toFriendlyString());
-        System.out.println(fee.toFriendlyString());
-        System.out.println(rootView.AvailableBalance.isLessThan(fee));
-        Coin test = rootView.AvailableBalance.negate();
-        System.out.println(test.isLessThan(fee));
-        System.out.println("-------------------------------------------------------------------------------");
+
         if(commit){
             checkNotNull(createOffer.getMakerFee(), "makerFee must not be null");
             createOffer.estimateTxSize();
@@ -117,7 +137,11 @@ public interface CreateOfferApiInterface {
                 message.success = false;
                 message.message = err;
             });
+
+            /* TODO implement Futures instead of sleep */
+            TimeUnit.SECONDS.sleep(2);
         }
+
         return message;
     }
 }

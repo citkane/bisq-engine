@@ -55,14 +55,12 @@ public class EngineModule extends AppModule {
         bind(InjectorViewFactory.class).in(Singleton.class);
         bind(ViewFactory.class).to(InjectorViewFactory.class);
 
-        if(Args.gui) {
+        if(Args.gui) bind(ViewLoader.class).to(FxmlViewLoader.class).in(Singleton.class);
+        if(Args.gui) bind(CachingViewLoader.class).in(Singleton.class);
+        if(Args.gui)bind(Navigation.class).in(Singleton.class);
 
-            bind(ViewLoader.class).to(FxmlViewLoader.class).in(Singleton.class);
-            bind(CachingViewLoader.class).in(Singleton.class);
-            bind(Navigation.class).in(Singleton.class);
-        }
-            bind(OfferBook.class).in(Singleton.class);
-            bind(BsqFormatter.class).in(Singleton.class);
+        bind(OfferBook.class).in(Singleton.class);
+        bind(BsqFormatter.class).in(Singleton.class);
 
         if(Args.gui) {
             bind(TorNetworkSettingsWindow.class).in(Singleton.class);
