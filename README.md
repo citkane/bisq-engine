@@ -65,4 +65,6 @@ If the GUI's are not showing that they are synchronised with REGTEST, go to your
 
 ## Where it's at?
 
-The plumbing is all done. The API can get some basic information and create offers. More to come soon.
+The plumbing is all done. The API can start from a clean boot, create account, fund wallet, create/accept offers and manage a trade through to completion.
+
+This is the most basic level of BISQ functionality, but the framework is present to build the API out into full functionality.
