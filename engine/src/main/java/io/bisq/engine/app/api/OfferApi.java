@@ -5,12 +5,9 @@
  */
 package io.bisq.engine.app.api;
 
-import com.google.common.util.concurrent.MoreExecutors;
-import io.bisq.common.UserThread;
 import io.bisq.core.offer.Offer;
 import io.bisq.core.offer.OfferPayload;
 import io.bisq.core.offer.OpenOffer;
-import io.bisq.core.payment.PaymentAccount;
 import io.bisq.gui.main.offer.createoffer.CreateOfferApiInterface;
 import static io.bisq.gui.main.offer.createoffer.CreateOfferApiInterface.*;
 import io.bisq.gui.main.offer.takeoffer.TakeOfferApiInterface;
@@ -18,21 +15,13 @@ import static io.bisq.gui.main.offer.takeoffer.TakeOfferApiInterface.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.MimeTypeUtils.*;
-
-import org.bitcoinj.core.Coin;
 import org.springframework.web.bind.annotation.*;
-
-import static io.bisq.engine.app.EngineAppMain.BisqEngine;
 
 @RestController
 @RequestMapping("/api/offers")
@@ -188,15 +177,8 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         if(message.data != null){
             message.data = Map((Offer) message.data);
         }
-        if(message.success == null || message.success){
-            if(!commit){
-                message.success = true;
-                message.message = "Offer is valid but NOT committed";
-            }
-            return message;
-        }else{
-            return message;
-        }
+
+        return message;
     }
 
 

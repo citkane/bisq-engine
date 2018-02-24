@@ -6,6 +6,8 @@
 package io.bisq.gui.main.offer.createoffer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import io.bisq.common.UserThread;
 import io.bisq.common.locale.TradeCurrency;
 import io.bisq.common.monetary.Price;
 import io.bisq.core.offer.Offer;
@@ -17,7 +19,8 @@ import org.bitcoinj.core.Coin;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public interface CreateOfferApiInterface {
 
@@ -29,119 +32,126 @@ public interface CreateOfferApiInterface {
             String priceModel,
             BigDecimal price,
             boolean commit
-    ) throws InterruptedException {
-        Message message = new Message();
+    ) throws InterruptedException, ExecutionException {
+        final Message message = new Message();
+        Boolean done = false;
+
 
         CreateOfferDataModel createOffer = injector.getInstance(CreateOfferDataModel.class);
-
-
 
         PaymentAccount paymentAccount = user.getPaymentAccount(paymentAccountId);
         if(paymentAccount == null){
             message.success = false;
             message.message = "Payment account was not found";
-            //setMessage(message);
             return message;
         }
 
-        long amount = Amount.multiply(new BigDecimal(100000000)).longValue();
-        Long minAmount = (MinAmount != null)?MinAmount.multiply(new BigDecimal(100000000)).longValue():null;
+        if(MinAmount == null) MinAmount = BigDecimal.ZERO;
+        final long amount = Amount.multiply(new BigDecimal(100000000)).longValue();
+        long minAmountTemp = MinAmount.multiply(new BigDecimal(100000000)).longValue();
+        if(minAmountTemp  == 0) minAmountTemp  = amount;
+        final long minAmount = minAmountTemp;
+
+        System.out.println("--------------------------"+minAmount+"-----------------------------------------");
+
         OfferPayload.Direction dir = direction.equals("BUY")?OfferPayload.Direction.BUY:OfferPayload.Direction.SELL;
 
         if(paymentAccount.getTradeCurrencies().isEmpty()){
             message.success = false;
             message.message = "Could not find a currency for the account";
-            //setMessage(message);
             return message;
-        }else if(paymentAccount.getSelectedTradeCurrency() == null){
-            paymentAccount.setSelectedTradeCurrency(paymentAccount.getTradeCurrencies().get(0));
-        }
-
-
-        TradeCurrency tradeCurrency = paymentAccount.getSelectedTradeCurrency();
-        String priceCode = paymentAccount.getSelectedTradeCurrency().getCode();
-
-        createOffer.setUseMarketBasedPrice(priceModel.equals("PERCENTAGE"));
-        createOffer.setAmount(Coin.valueOf(amount));
-
-        if(minAmount == null || minAmount == 0) minAmount = amount;
-        createOffer.setMinAmount(Coin.valueOf(minAmount));
-
+        };
         if(!createOffer.isMinAmountLessOrEqualAmount()){
             message.success = false;
             message.message = "Minimum amount must be less than or equal to amount";
-            //setMessage(message);
             return message;
         }
 
-        if(priceModel.equals("PERCENTAGE")){
+        CompletableFuture<Message> promise = new CompletableFuture<>();
+        UserThread.execute(()->{
 
-            if(priceFeedService.getMarketPrice(priceCode) == null || !priceFeedService.getMarketPrice(priceCode).isPriceAvailable()){
-                message.success = false;
-                message.message = "Could not get a price feed";
-                //setMessage(message);
-                return message;
+            TradeCurrency tradeCurrency = paymentAccount.getSelectedTradeCurrency();
+            String priceCode = paymentAccount.getSelectedTradeCurrency().getCode();
+
+            createOffer.setUseMarketBasedPrice(priceModel.equals("PERCENTAGE"));
+            createOffer.setAmount(Coin.valueOf(amount));
+            createOffer.setMinAmount(Coin.valueOf(minAmount));
+
+            if(priceModel.equals("PERCENTAGE")){
+
+                if(priceFeedService.getMarketPrice(priceCode) == null || !priceFeedService.getMarketPrice(priceCode).isPriceAvailable()){
+                    message.success = false;
+                    message.message = "Could not get a price feed";
+                    promise.complete(message);
+                    return;
+                }
+
+                double max = preferences.getMaxPriceDistanceInPercent();
+                double margin = price.divide(new BigDecimal(100),5, RoundingMode.CEILING).doubleValue();
+                if (Math.abs(margin) > max) {
+                    message.success = false;
+                    message.message = "Price margin is greater than set in the user preferences";
+                    promise.complete(message);
+                    return;
+                }
+                createOffer.setMarketPriceAvailable(true);
+                createOffer.setMarketPriceMargin(margin);
+
+                double P = priceFeedService.getMarketPrice(priceCode).getPrice();
+                createOffer.setPrice(Price.parse(priceCode,String.valueOf(P)));
+            }else{
+                createOffer.setMarketPriceMargin(0);
+                createOffer.setPrice(Price.parse(priceCode,price.toString()));
             }
 
-            double max = preferences.getMaxPriceDistanceInPercent();
-            double margin = price.divide(new BigDecimal(100),5, RoundingMode.CEILING).doubleValue();
-            if (Math.abs(margin) > max) {
+            preferences.setSelectedPaymentAccountForCreateOffer(paymentAccount);
+            createOffer.initWithData(dir, tradeCurrency);
+            Offer offer = createOffer.createAndGetOffer();
+
+
+
+            if(offer.getAmount().compareTo(offer.getPaymentMethod().getMaxTradeLimitAsCoin(offer.getCurrencyCode())) > 0){
                 message.success = false;
-                message.message = "Price margin is greater than set in the user preferences";
-                //setMessage(message);
-                return message;
+                message.message = "Amount is larger than " + offer.getPaymentMethod().getMaxTradeLimitAsCoin(offer.getCurrencyCode()).toFriendlyString();
+                promise.complete(message);
+                return;
             }
-            createOffer.setMarketPriceAvailable(true);
-            createOffer.setMarketPriceMargin(margin);
 
-            double P = priceFeedService.getMarketPrice(priceCode).getPrice();
-            createOffer.setPrice(Price.parse(priceCode,String.valueOf(P)));
-        }else{
-            createOffer.setMarketPriceMargin(0);
-            createOffer.setPrice(Price.parse(priceCode,price.toString()));
-        }
+            Coin fee = offer.getMakerFee();
+            if(dir.toString().equals("SELL")) fee = fee.add(offer.getAmount());
+            if (rootView.AvailableBalance.isLessThan(fee)){
+                message.success = false;
+                message.message = "Insufficient funds for offer in wallet";
+                promise.complete(message);
+                return;
+            }
+            message.data = offer;
+            if(commit){
+                checkNotNull(createOffer.getMakerFee(), "makerFee must not be null");
+                createOffer.estimateTxSize();
+                Coin reservedFundsForOffer = createOffer.getSecurityDeposit();
+                if (!createOffer.isBuyOffer())
+                    reservedFundsForOffer = reservedFundsForOffer.add(createOffer.getAmount().get());
 
-        preferences.setSelectedPaymentAccountForCreateOffer(paymentAccount);
-        createOffer.initWithData(dir, tradeCurrency);
-        Offer offer = createOffer.createAndGetOffer();
+                Coin finalReservedFundsForOffer = reservedFundsForOffer;
 
-        message.data = offer;
+                openOfferManager.placeOffer(offer, finalReservedFundsForOffer,true,(mess)->{
+                    message.success = true;
+                    message.message = "Offer was successfully placed";
+                    promise.complete(message);
+                },(err)->{
+                    message.success = false;
+                    message.message = err;
+                    promise.complete(message);
+                });
 
-        if(offer.getAmount().compareTo(offer.getPaymentMethod().getMaxTradeLimitAsCoin(offer.getCurrencyCode())) > 0){
-            message.success = false;
-            message.message = "Amount is larger than " + offer.getPaymentMethod().getMaxTradeLimitAsCoin(offer.getCurrencyCode()).toFriendlyString();
-            //setMessage(message);
-            return message;
-        }
-
-        Coin fee = offer.getMakerFee();
-        if(dir.toString().equals("SELL")) fee = fee.add(offer.getAmount());
-        if (rootView.AvailableBalance.isLessThan(fee)){
-            message.success = false;
-            message.message = "Insufficient funds for offer in wallet";
-            //setMessage(message);
-            return message;
-        }
-
-        if(commit){
-            checkNotNull(createOffer.getMakerFee(), "makerFee must not be null");
-            createOffer.estimateTxSize();
-            Coin reservedFundsForOffer = createOffer.getSecurityDeposit();
-            if (!createOffer.isBuyOffer())
-                reservedFundsForOffer = reservedFundsForOffer.add(createOffer.getAmount().get());
-
-            openOfferManager.placeOffer(offer,reservedFundsForOffer,true,(mess)->{
+            }else{
                 message.success = true;
-                message.message = "Offer was successfully placed";
-            },(err)->{
-                message.success = false;
-                message.message = err;
-            });
+                message.message = "Offer is valid but NOT committed";
+                promise.complete(message);
+            }
+        });
 
-            /* TODO implement Futures instead of sleep */
-            TimeUnit.SECONDS.sleep(2);
-        }
-
-        return message;
+        return promise.get();
     }
 }

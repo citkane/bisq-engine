@@ -3,19 +3,18 @@ package io.bisq.gui.main.offer.takeoffer;
 import static io.bisq.engine.app.api.ApiData.*;
 import static java.util.stream.Collectors.toList;
 
+import io.bisq.common.UserThread;
 import io.bisq.core.app.BisqEnvironment;
 import io.bisq.core.offer.Offer;
 import io.bisq.core.payment.PaymentAccount;
+import io.bisq.core.payment.PaymentAccountUtil;
 import io.bisq.core.trade.protocol.ProcessModel;
 import org.bitcoinj.core.Coin;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public interface TakeOfferApiInterface {
 
@@ -61,44 +60,61 @@ public interface TakeOfferApiInterface {
         }else{
             account = aList.get(0);
         }
+        if(!PaymentAccountUtil.isPaymentAccountValidForOffer(offer, account)){
+            message.success = false;
+            message.message = "Payment account is not valid for the offer";
+            return message;
+        }
         Long am = (Amount != null)?Amount.multiply(new BigDecimal(100000000)).longValue():offer.getAmount().longValue();
         Coin amount = Coin.valueOf(am);
 
-        take.initWithData(offer);
-        take.onPaymentAccountSelected(account);
-        take.applyAmount(amount);
-        take.fundFromSavingsWallet();
+        CompletableFuture<Message> promise = new CompletableFuture<>();
+        UserThread.execute(()-> {
+            take.initWithData(offer);
+            take.onPaymentAccountSelected(account);
+            take.applyAmount(amount);
+            take.fundFromSavingsWallet();
 
-        if(!take.hasAcceptedArbitrators()){
-            message.message = "No accepted arbitrators found";
-            return message;
-        }
-        if(!take.isMinAmountLessOrEqualAmount()){
-            message.message = "Amount is less than the acceptable minimum";
-            return message;
-        }
-        if(take.isAmountLargerThanOfferAmount()){
-            message.message = "Amount is larger than the offer amount";
-            return message;
-        }
-        if(take.wouldCreateDustForMaker()){
-            message.message = "Trade would create dust for the maker";
-            return message;
-        }
 
-        if(!take.isTakerFeeValid()){
-            message.message = "Taker fee is not valid";
-            return message;
-        }
+            message.success = false;
 
-        take.onTakeOffer((trade) -> {
-            take.message.success = true;
-            take.message.message = "You successfully accepted the offer";
-
+            if(!take.hasAcceptedArbitrators()){
+                message.message = "No accepted arbitrators found";
+                promise.complete(message);
+                return;
+            }
+            if(!take.isMinAmountLessOrEqualAmount()){
+                message.message = "Amount is less than the acceptable minimum";
+                promise.complete(message);
+                return;
+            }
+            if(take.isAmountLargerThanOfferAmount()){
+                message.message = "Amount is larger than the offer amount";
+                promise.complete(message);
+                return;
+            }
+            if(take.wouldCreateDustForMaker()){
+                message.message = "Trade would create dust for the maker";
+                promise.complete(message);
+                return;
+            }
+            if(!take.isTakerFeeValid()){
+                message.message = "Taker fee is not valid";
+                promise.complete(message);
+                return;
+            }
+            take.onTakeOffer((trade) -> {
+                if(take.message.success == null){
+                    take.message.success = true;
+                    take.message.message = "You successfully accepted the offer";
+                }
+                promise.complete(take.message);
+            });
+            if(take.message.success == false){
+                promise.complete(take.message);
+            }
         });
 
-        /* TODO implement Futures instead of sleep */
-        TimeUnit.SECONDS.sleep(2);
-        return take.message;
+        return promise.get();
     }
 }

@@ -32,7 +32,9 @@ public class SwaggerConfig {
                 new Tag("Offers", "Perform operations relating to offers"),
                 new Tag("Preferences", "Perform operations relating to preferences"),
                 new Tag("User", "Perform operations relating to the user"),
-                new Tag("Account", "Perform operations relating to accounts")
+                new Tag("Account", "Perform operations relating to accounts"),
+                new Tag("Trade", "Perform operations relating to trades")
+
             );
     }
     Contact michael = new Contact("Bisq-engine","https://github.com/citkane/bisq-engine",null);

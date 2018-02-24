@@ -321,7 +321,6 @@ class TakeOfferDataModel extends ActivatableDataModel {
             message.success = false;
             message.message = Res.get("offerbook.warning.nodeBlocked");
         } else {
-            System.out.println("--------------------------------------------------onTakeOffer----------------------------------------------------");
             tradeManager.onTakeOffer(amount.get(),
                     txFeeFromFeeService,
                     getTakerFee(),

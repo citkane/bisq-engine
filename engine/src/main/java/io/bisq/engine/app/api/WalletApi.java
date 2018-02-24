@@ -47,9 +47,15 @@ public class WalletApi extends ApiData {
         return balance;
     }
 
-    @RequestMapping(value = "/paymentAddress", method= RequestMethod.GET, produces = TEXT_PLAIN_VALUE)
+    @RequestMapping(value = "/paymentAddress", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get an address to fund the BTC wallet")
-    public String getBtcAddress(){
-        return btcWalletService.getOrCreateAddressEntry(AddressEntry.Context.AVAILABLE).getAddressString();
+    public Message getBtcAddress() throws Exception {
+        checkErrors();
+
+        Message message = new Message();
+        message.success = true;
+        message.message = "Payment address to fund BISQ trading wallet";
+        message.data = btcWalletService.getOrCreateAddressEntry(AddressEntry.Context.AVAILABLE).getAddressString();
+        return message;
     }
 }
