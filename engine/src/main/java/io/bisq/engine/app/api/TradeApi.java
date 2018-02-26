@@ -12,6 +12,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,25 +34,26 @@ public class TradeApi  extends ApiData{
     public static class TradeJson{
         public String id;
         public Date date;
-        public String direction;
+        public Boolean isMyOffer;
         public String type;
         public String state;
         public String phase;
+        public JSONObject contract;
 
     }
 
-    private TradeJson Map(Trade trade){
+    private TradeJson Map(Trade trade) throws ParseException {
         TradeJson tr = new TradeJson();
         Contract co = trade.getContract();
 
 
         tr.id = trade.getId();
         tr.date = trade.getTakeOfferDate();
-        tr.direction = co.getOfferPayload().getDirection().toString();
+        tr.isMyOffer = trade.getOffer().isMyOffer(keyRing);
         tr.type = trade instanceof BuyerTrade?"BuyerTrade":"SellerTrade";
         tr.state = trade.getState().toString();
         tr.phase = trade.getState().getPhase().toString();
-
+        tr.contract = (JSONObject) new JSONParser().parse(tradeManager.getTradeById(trade.getId()).get().getContractAsJson());
 
         return tr;
     }
@@ -62,7 +64,12 @@ public class TradeApi  extends ApiData{
         checkErrors();
 
         return tradeManager.getTradableList().stream().map((trade)->{
-            return Map(trade);
+            try {
+                return Map(trade);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return new TradeJson();
+            }
         }).collect(toList());
     }
 
