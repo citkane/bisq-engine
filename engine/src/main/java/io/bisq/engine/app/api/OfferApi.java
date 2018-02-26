@@ -86,7 +86,8 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
     @RequestMapping(value = "/list", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get a list of all open offers")
     public List<OfferJson> listOffers(
-        @RequestParam(value = "Optionally filter by currency code", required=false)
+        @ApiParam(value = "Optionally filter by currency code")
+        @RequestParam(value = "currency", required=false)
         String currency
     ) throws Exception {
         checkErrors();
@@ -100,7 +101,8 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
     @RequestMapping(value = "/detail", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get details of a single offer")
     public OfferJson offerById(
-            @RequestParam(value = "The offer id", required=true)
+            @ApiParam(value = "The offer id", required=true)
+            @RequestParam(value = "offerId")
             String offerId
     ) throws Exception {
         checkErrors();
@@ -119,16 +121,16 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
     @ApiOperation(value = "Accept an offer")
     public Message offerTake(
 	    @ApiParam(value = "The offer id", required=true)
-            @RequestParam(value = "offerId", required=true)
-            String offerId,
-	
-	    @ApiParam(value = "The id of the payment account.", required=true)
-            @RequestParam(value = "accountId", required=true)
-            String accountId,
+        @RequestParam(value = "offerId")
+        String offerId,
 
-            @ApiParam(value = "The trade amount in base units (eg. <0.1> for 0.1 BTC). Will set to offer maximum if left blank")
-            @RequestParam(value = "Amount", required = false)
-            BigDecimal Amount
+	    @ApiParam(value = "The id of the payment account.", required=true)
+        @RequestParam(value = "accountId")
+        String accountId,
+
+        @ApiParam(value = "The trade amount in base units (eg. <0.1> for 0.1 BTC). Will set to offer maximum if left blank")
+        @RequestParam(value = "Amount", required = false)
+        BigDecimal Amount
 
     ) throws Exception {
         checkErrors();
@@ -189,7 +191,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
     public Message offerCancel(
             @ApiParam(value = "The id of the offer", required=true)
             @RequestParam(value = "offerId")
-                    String offerId
+            String offerId
     ) throws Exception {
         checkErrors();
 

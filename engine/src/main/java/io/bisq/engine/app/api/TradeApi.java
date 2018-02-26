@@ -10,6 +10,7 @@ import io.bisq.core.trade.SellerTrade;
 import io.bisq.core.trade.Trade;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -87,8 +88,9 @@ public class TradeApi  extends ApiData{
     @RequestMapping(value = "/contract", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get the contract for a trade")
     public Message getTrade(
-            @RequestParam(value = "The trade offer id", required=true)
-            String tradeId
+        @ApiParam(value = "The trade offer id", required=true)
+        @RequestParam(value = "tradeId")
+        String tradeId
     ) throws Exception {
         checkErrors();
 
@@ -107,8 +109,9 @@ public class TradeApi  extends ApiData{
     @RequestMapping(value = "/payment/started", method= RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Indicate that payment has started on a trade")
     public Message paymentStarted(
-            @RequestParam(value = "The trade offer id", required=true)
-            String tradeId
+        @ApiParam(value = "The trade offer id", required=true)
+        @RequestParam(value = "tradeId")
+        String tradeId
     ) throws Exception {
         checkErrors();
 
@@ -148,8 +151,9 @@ public class TradeApi  extends ApiData{
     @RequestMapping(value = "/payment/received", method= RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Indicate that payment for trade was received")
     public Message paymentReceived(
-            @RequestParam(value = "The trade offer id", required=true)
-                    String tradeId
+        @ApiParam(value = "The trade offer id", required=true)
+        @RequestParam(value = "tradeId")
+        String tradeId
     ) throws Exception {
         checkErrors();
 
@@ -188,8 +192,9 @@ public class TradeApi  extends ApiData{
     @RequestMapping(value = "/payment/movetobisq", method= RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Move trade funds to the BISQ wallet")
     public Message moveToBisqWallet(
-            @RequestParam(value = "The trade offer id", required=true)
-                    String tradeId
+        @ApiParam(value = "The trade offer id", required=true)
+        @RequestParam(value = "tradeId")
+        String tradeId
     ) throws Exception {
         checkErrors();
 
