@@ -118,10 +118,12 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
     @RequestMapping(value = "/offerTake", method= RequestMethod.POST, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Accept an offer")
     public Message offerTake(
-            @RequestParam(value = "The offer id", required=true)
+	    @ApiParam(value = "The offer id", required=true)
+            @RequestParam(value = "offerId", required=true)
             String offerId,
-
-            @RequestParam(value = "The payment account id", required=true)
+	
+	    @ApiParam(value = "The id of the payment account.", required=true)
+            @RequestParam(value = "accountId", required=true)
             String accountId,
 
             @ApiParam(value = "The trade amount in base units (eg. <0.1> for 0.1 BTC). Will set to offer maximum if left blank")

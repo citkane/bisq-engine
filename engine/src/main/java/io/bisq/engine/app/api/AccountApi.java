@@ -1,5 +1,7 @@
 package io.bisq.engine.app.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.bisq.common.locale.*;
 import io.bisq.core.payment.*;
 import io.bisq.core.payment.payload.PaymentAccountPayload;
@@ -10,11 +12,16 @@ import io.bisq.gui.util.validation.InputValidator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.bitcoinj.core.Coin;
+import org.json.simple.JSONObject;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,12 +38,18 @@ public class AccountApi extends ApiData {
         public String id;
         public String paymentmethod;
         public List<String> currencies;
+        public JSONObject limits;
     }
 
-    @RequestMapping(value = "/", method = RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/list", method = RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Get a list of payment accounts")
     public static List<AccountJson> PaymentAccounts() throws Exception {
         checkErrors();
+
+        class Limit{
+            public double max;
+            public double min;
+        }
 
         if (user.getPaymentAccounts().isEmpty()) return new ArrayList<AccountJson>();
         return user.getPaymentAccounts().stream().map((PaymentAccount acc) -> {
@@ -47,6 +60,15 @@ public class AccountApi extends ApiData {
             account.currencies = acc.getTradeCurrencies().stream().map((a)->{
                 return a.getCode();
             }).collect(toList());
+            HashMap<String,Limit> limit = new HashMap<>();
+            acc.getTradeCurrencies().stream().forEach((curr)->{
+                Coin Max = Coin.valueOf(accountAgeWitnessService.getMyTradeLimit(acc,curr.getCode()));
+                Limit l = new Limit();
+                l.max= Double.parseDouble(Max.toPlainString());
+                l.min = 0.001; // TODO how to get min trade amount from account?
+                limit.put(curr.getCode(),l);
+            });
+            account.limits = new JSONObject(limit);
             return account;
         }).collect(toList());
     }
