@@ -15,6 +15,7 @@ import io.bisq.core.alert.PrivateNotificationManager;
 import io.bisq.core.app.BisqEnvironment;
 import io.bisq.core.arbitration.ArbitratorManager;
 import io.bisq.core.arbitration.DisputeManager;
+import io.bisq.core.btc.wallet.BsqWalletService;
 import io.bisq.core.btc.wallet.BtcWalletService;
 import io.bisq.core.btc.wallet.WalletsManager;
 import io.bisq.core.btc.wallet.WalletsSetup;
@@ -56,6 +57,7 @@ public class ApiData {
     public static WalletsManager walletsManager;
     public static WalletsSetup walletsSetup;
     public static BtcWalletService btcWalletService;
+    public static BsqWalletService bsqWalletService;
     public static PriceFeedService priceFeedService;
     public static ArbitratorManager arbitratorManager;
     public static P2PService p2PService;
@@ -102,6 +104,7 @@ public class ApiData {
         walletsManager = injector.getInstance(WalletsManager.class);
         walletsSetup = injector.getInstance(WalletsSetup.class);
         btcWalletService = injector.getInstance(BtcWalletService.class);
+        bsqWalletService = injector.getInstance(BsqWalletService.class);
         priceFeedService = injector.getInstance(PriceFeedService.class);
         arbitratorManager = injector.getInstance(ArbitratorManager.class);
         p2PService = injector.getInstance(P2PService.class);

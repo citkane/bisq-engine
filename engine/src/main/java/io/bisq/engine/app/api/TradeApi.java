@@ -13,6 +13,7 @@ import io.bisq.network.p2p.NodeAddress;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.bitcoinj.core.Coin;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -47,6 +48,7 @@ public class TradeApi  extends ApiData{
         public NodeAddress mediator;
         public NodeAddress arbitrator;
         public Peer peer = new Peer();
+        public double deposit;
         public String paymentMethod;
         public Money money = new Money();
 
@@ -60,6 +62,7 @@ public class TradeApi  extends ApiData{
             public BigDecimal price;
             public double amount;
             public double volume;
+
         }
     }
 
@@ -87,7 +90,8 @@ public class TradeApi  extends ApiData{
         }
         tr.money.amount = Double.parseDouble(co.getTradeAmount().toPlainString());
         tr.money.volume = tr.money.price.doubleValue()*tr.money.amount;
-
+        Coin deposit = tr.type.matches("BuyerTrade")?trade.getOffer().getBuyerSecurityDeposit():trade.getOffer().getSellerSecurityDeposit();
+        tr.deposit = Double.parseDouble(deposit.toPlainString());
         return tr;
     }
 
