@@ -5,8 +5,6 @@
  */
 package io.bisq.engine.app.api;
 
-import io.bisq.common.monetary.Altcoin;
-import io.bisq.common.monetary.AltcoinExchangeRate;
 import io.bisq.core.offer.Offer;
 import io.bisq.core.offer.OfferPayload;
 import io.bisq.core.offer.OpenOffer;
@@ -18,14 +16,13 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.MimeTypeUtils.*;
 
-import org.bitcoinj.core.Coin;
 import org.bitcoinj.utils.Fiat;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +38,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         public String direction;
         public Currencies currencies = new Currencies();
         public Money money = new Money();
+        public Fees fees = new Fees();
         public Boolean isMyOffer;
         public String buyerSecurityDeposit;
         public String makerFee;
@@ -54,16 +52,26 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
             public String baseCurrency;
         };
         public class Money{
-            public String amount;
-            public String minAmount;
+            public double amount;
+            public double minAmount;
             public Boolean useMarketPrice;
             public String marketPriceMargin;
-            public String price;
-            public String volume;
+            public double price;
+            public double volume;
         };
+        public class Fees{
+            public double buyerSecurityDeposit;
+            public String buyerPercent;
+            public double sellerSecurityDeposit;
+            public String sellerPercent;
+            public double minerFee;
+            public String minerPercent;
+            public double transactionFee;
+            public String transactionPercent;
+        }
     }
 
-    private OfferJson Map(Offer offer){
+    private OfferJson Map(Offer offer) throws ExecutionException, InterruptedException {
         OfferPayload op = offer.getOfferPayload();
         OfferJson offr = new OfferJson();
         boolean fiat = offer.getPrice().getMonetary() instanceof Fiat;
@@ -75,13 +83,21 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         offr.currencies.baseCurrency = op.getBaseCurrencyCode();
         offr.paymentMethod = op.getPaymentMethodId();
         offr.direction = offer.getDirection().toString();
-        offr.money.amount = offer.getAmount().toPlainString();
-        offr.money.minAmount = offer.getMinAmount().toPlainString();
+        offr.money.amount = Double.parseDouble(offer.getAmount().toPlainString());
+        offr.money.minAmount = Double.parseDouble(offer.getMinAmount().toPlainString());
         offr.money.useMarketPrice = op.isUseMarketBasedPrice();
         offr.money.marketPriceMargin = formatter.formatToPercent(offer.getMarketPriceMargin());
-        offr.money.price = formatter.formatPrice(offer.getPrice());
-        if(!fiat) offr.money.price = reciprocal(offr.money.price);
-        offr.money.volume = formatter.formatVolume(offer.getVolume());
+        offr.money.price = Double.parseDouble(formatter.formatPrice(offer.getPrice()));
+        if(!fiat) offr.money.price = Double.parseDouble(reciprocal(String.valueOf(offr.money.price)));
+        offr.money.volume = Double.parseDouble(formatter.formatVolume(offer.getVolume()));
+        offr.fees.buyerSecurityDeposit = Double.parseDouble(offer.getBuyerSecurityDeposit().toPlainString());
+        offr.fees.buyerPercent = formatter.formatToPercentWithSymbol(offr.fees.buyerSecurityDeposit/offr.money.amount);
+        offr.fees.sellerSecurityDeposit = Double.parseDouble(offer.getSellerSecurityDeposit().toPlainString());
+        offr.fees.sellerPercent = formatter.formatToPercentWithSymbol(offr.fees.sellerSecurityDeposit/offr.money.amount);
+        offr.fees.minerFee = Double.parseDouble(getTxFee(offer).toPlainString());
+        offr.fees.minerPercent = formatter.formatToPercentWithSymbol(offr.fees.minerFee/offr.money.amount);
+        offr.fees.transactionFee = Double.parseDouble(offer.getMakerFee().toPlainString());
+        offr.fees.transactionPercent = formatter.formatToPercentWithSymbol(offr.fees.transactionFee/offr.money.amount);
         offr.isMyOffer = offer.isMyOffer(keyRing);
         offr.buyerSecurityDeposit = offer.getBuyerSecurityDeposit().toPlainString();
         offr.makerFee = offer.getMakerFee().toPlainString();
@@ -102,7 +118,17 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
 
         List<OfferJson> list = offerBookService.getOffers().stream().filter(
             offer->currency == null || offer.getCurrencyCode().equals(currency)
-        ).map(this::Map).collect(toList());
+        ).map((offer)->{
+            try {
+                return Map(offer);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+                return new OfferJson();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return new OfferJson();
+            }
+        }).collect(toList());
         return list;
     }
 
@@ -117,7 +143,17 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
 
         List<OfferJson> list = offerBookService.getOffers().stream().filter(
                 offer->offer.getId().equals(offerId)
-        ).map(this::Map).collect(toList());
+        ).map((offer)->{
+            try {
+                return Map(offer);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+                return new OfferJson();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return new OfferJson();
+            }
+        }).collect(toList());
 
         if(list.isEmpty())
             throw new error.NotFound();

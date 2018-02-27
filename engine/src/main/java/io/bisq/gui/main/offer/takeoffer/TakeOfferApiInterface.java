@@ -19,6 +19,16 @@ import java.util.concurrent.*;
 
 public interface TakeOfferApiInterface {
 
+    static Coin getTxFee(Offer offer) throws ExecutionException, InterruptedException {
+        TakeOfferDataModel take = injector.getInstance(TakeOfferDataModel.class);
+        CompletableFuture<Coin> promise = new CompletableFuture<>();
+        UserThread.execute(()-> {
+            take.initWithData(offer);
+            promise.complete(take.getTotalTxFee());
+        });
+        return promise.get();
+    }
+
     static Message takeOffer(String offerId, String accountId, BigDecimal Amount) throws InterruptedException, ExecutionException {
 
 
