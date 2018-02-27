@@ -12,6 +12,7 @@ import io.bisq.core.trade.protocol.ProcessModel;
 import org.bitcoinj.core.Coin;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -65,7 +66,10 @@ public interface TakeOfferApiInterface {
             message.message = "Payment account is not valid for the offer";
             return message;
         }
-        Long am = (Amount != null)?Amount.multiply(new BigDecimal(100000000)).longValue():offer.getAmount().longValue();
+
+        if (Amount == null) Amount = new BigDecimal(offer.getAmount().longValue());
+
+        Long am = Amount.multiply(new BigDecimal(100000000)).longValue();
         Coin amount = Coin.valueOf(am);
 
         CompletableFuture<Message> promise = new CompletableFuture<>();

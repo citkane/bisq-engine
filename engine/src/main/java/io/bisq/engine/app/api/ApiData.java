@@ -40,9 +40,12 @@ import io.bisq.network.p2p.P2PService;
 import io.bisq.core.offer.OfferBookService;
 import io.bisq.engine.EngineBoot;
 import io.bisq.gui.main.offer.offerbook.OfferBook;
+import org.bitcoinj.core.Coin;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.concurrent.ExecutorService;
 
 import static io.bisq.engine.app.EngineAppMain.BisqEngine;
@@ -162,5 +165,12 @@ public class ApiData {
     public static void checkErrors() throws Exception {
         if(!preferences.isTacAccepted()) throw new error.TACerror();
         if(user.getPaymentAccounts() == null) throw new error.ServerError();
+    }
+
+    public static String reciprocal(String val){
+        BigDecimal recip = new BigDecimal(1).divide(new BigDecimal(val),100, RoundingMode.HALF_EVEN);
+        val = String.valueOf(recip);
+
+        return formatter.parseToCoin(val).toPlainString();
     }
 }

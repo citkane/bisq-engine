@@ -30,12 +30,10 @@ public interface CreateOfferApiInterface {
             BigDecimal Amount,
             BigDecimal MinAmount,
             String priceModel,
-            BigDecimal price,
+            BigDecimal tPrice,
             boolean commit
     ) throws InterruptedException, ExecutionException {
         final Message message = new Message();
-        Boolean done = false;
-
 
         CreateOfferDataModel createOffer = injector.getInstance(CreateOfferDataModel.class);
 
@@ -67,6 +65,13 @@ public interface CreateOfferApiInterface {
             return message;
         }
 
+        boolean fiat = !paymentAccount.getPaymentAccountPayload().getPaymentMethodId().matches("BLOCK_CHAINS");
+        if(!fiat && !priceModel.equals("PERCENTAGE")){
+            String foo = reciprocal(String.valueOf(tPrice));
+            tPrice = new BigDecimal(foo);
+        }
+        BigDecimal price = tPrice;
+
         CompletableFuture<Message> promise = new CompletableFuture<>();
         UserThread.execute(()->{
 
@@ -87,7 +92,7 @@ public interface CreateOfferApiInterface {
                 }
 
                 double max = preferences.getMaxPriceDistanceInPercent();
-                double margin = price.divide(new BigDecimal(100),5, RoundingMode.CEILING).doubleValue();
+                double margin = price.divide(new BigDecimal(100),8, RoundingMode.CEILING).doubleValue();
                 if (Math.abs(margin) > max) {
                     message.success = false;
                     message.message = "Price margin is greater than set in the user preferences";

@@ -5,6 +5,8 @@
  */
 package io.bisq.engine.app.api;
 
+import io.bisq.common.monetary.Altcoin;
+import io.bisq.common.monetary.AltcoinExchangeRate;
 import io.bisq.core.offer.Offer;
 import io.bisq.core.offer.OfferPayload;
 import io.bisq.core.offer.OpenOffer;
@@ -16,11 +18,15 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.MimeTypeUtils.*;
+
+import org.bitcoinj.core.Coin;
+import org.bitcoinj.utils.Fiat;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -60,6 +66,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
     private OfferJson Map(Offer offer){
         OfferPayload op = offer.getOfferPayload();
         OfferJson offr = new OfferJson();
+        boolean fiat = offer.getPrice().getMonetary() instanceof Fiat;
 
         offr.id = op.getId();
         offr.date = op.getDate();
@@ -73,6 +80,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         offr.money.useMarketPrice = op.isUseMarketBasedPrice();
         offr.money.marketPriceMargin = formatter.formatToPercent(offer.getMarketPriceMargin());
         offr.money.price = formatter.formatPrice(offer.getPrice());
+        if(!fiat) offr.money.price = reciprocal(offr.money.price);
         offr.money.volume = formatter.formatVolume(offer.getVolume());
         offr.isMyOffer = offer.isMyOffer(keyRing);
         offr.buyerSecurityDeposit = offer.getBuyerSecurityDeposit().toPlainString();
@@ -175,16 +183,13 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
     ) throws Exception {
         checkErrors();
 
-
         Message message = getOffer(paymentAccountId,direction,Amount,MinAmount,priceModel,price,commit);
-
         if(message.data != null){
             message.data = Map((Offer) message.data);
         }
 
         return message;
     }
-
 
     @RequestMapping(value = "/offerCancel", method= RequestMethod.DELETE, produces = APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Cancel one of your own offers.")
