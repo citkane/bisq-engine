@@ -1,6 +1,6 @@
 # bisq-engine
 
-Base component for a [BISQ](https://github.com/bisq-network/exchange) MVC API architecture.
+Base component for a [Bisq](https://github.com/bisq-network/exchange) MVC API architecture.
 
 This bootstraps the core application optionally with the GUI, or headless without launching the javaFX application. It plumbs the Guice injector to an API controller/interface space in a GUI agnostic way.
 
@@ -67,4 +67,4 @@ If the GUI's are not showing that they are synchronised with REGTEST, go to your
 
 The plumbing is all done. The API can start from a clean boot, create account, fund wallet, create/accept offers and manage a trade through to completion.
 
-This is the most basic level of BISQ functionality, but the framework is present to build the API out into full functionality.
+This is the most basic level of Bisq functionality, but the framework is present to build the API out into full functionality.
