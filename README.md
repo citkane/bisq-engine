@@ -10,6 +10,8 @@ It is envisaged to implement between multiple output types (http,socket,io,etc).
 
 At the moment `Engine` provides a [Swagger](https://swagger.io/) UI and endpoints bound to localhost. Swagger is implemented with the [Springfox](https://springfox.github.io/springfox/) library, enabling the use of [Spring framework](https://spring.io/) annotations extended for API documentation. The roadmap includes implementing event driven pushes to API sockets.
 
+![engineapp](https://user-images.githubusercontent.com/998947/36864721-6398abbc-1d85-11e8-88d1-ff2895fa34a0.jpg)
+
 ## To regtest:
 
 
