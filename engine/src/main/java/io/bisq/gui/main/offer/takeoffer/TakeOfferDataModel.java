@@ -83,7 +83,7 @@ class TakeOfferDataModel extends ActivatableDataModel {
     private final AccountAgeWitnessService accountAgeWitnessService;
     private final BSFormatter formatter;
 
-    private Coin txFeeFromFeeService;
+    protected Coin txFeeFromFeeService;
     private Coin securityDeposit;
     // Coin feeFromFundingTx = Coin.NEGATIVE_SATOSHI;
 
@@ -107,10 +107,10 @@ class TakeOfferDataModel extends ActivatableDataModel {
     private Notification walletFundedNotification;
     Price tradePrice;
     // 260 kb is size of typical trade fee tx with 1 input but trade tx (deposit and payout) are larger so we adjust to 320
-    private int feeTxSize = 320;
+    protected int feeTxSize = 320;
     private int feeTxSizeEstimationRecursionCounter;
     private boolean freezeFee;
-    private Coin txFeePerByteFromFeeService;
+    protected Coin txFeePerByteFromFeeService;
 
     final Message message = new Message();
 
@@ -637,7 +637,7 @@ class TakeOfferDataModel extends ActivatableDataModel {
         return (txSize + 320) / 2;
     }
 
-    private Coin getTxFeeBySize(int sizeInBytes) {
+    protected Coin getTxFeeBySize(int sizeInBytes) {
         return txFeePerByteFromFeeService.multiply(getAverageSize(sizeInBytes));
     }
 

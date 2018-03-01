@@ -21,11 +21,14 @@ public interface TakeOfferApiInterface {
 
     static Coin getTxFee(Offer offer) throws ExecutionException, InterruptedException {
         TakeOfferDataModel take = injector.getInstance(TakeOfferDataModel.class);
+
         CompletableFuture<Coin> promise = new CompletableFuture<>();
-        UserThread.execute(()-> {
-            take.initWithData(offer);
+        feeService.requestFees(()->{
+            take.txFeePerByteFromFeeService = feeService.getTxFeePerByte();
+            take.txFeeFromFeeService = take.getTxFeeBySize(take.feeTxSize);
             promise.complete(take.getTotalTxFee());
-        });
+        },null);
+
         return promise.get();
     }
 

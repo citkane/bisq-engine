@@ -38,7 +38,6 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         public String direction;
         public Currencies currencies = new Currencies();
         public Money money = new Money();
-        public Fees fees = new Fees();
         public Boolean isMyOffer;
         public String buyerSecurityDeposit;
         public String makerFee;
@@ -59,19 +58,20 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
             public double price;
             public double volume;
         };
-        public class Fees{
-            public double buyerSecurityDeposit;
-            public String buyerPercent;
-            public double sellerSecurityDeposit;
-            public String sellerPercent;
-            public double minerFee;
-            public String minerPercent;
-            public double transactionFee;
-            public String transactionPercent;
-        }
     }
 
-    private OfferJson Map(Offer offer) throws ExecutionException, InterruptedException {
+    public class FeesJson{
+        public double buyerSecurityDeposit;
+        public String buyerPercent;
+        public double sellerSecurityDeposit;
+        public String sellerPercent;
+        public double minerFee;
+        public String minerPercent;
+        public double transactionFee;
+        public String transactionPercent;
+    }
+
+    private OfferJson Map(Offer offer) {
         OfferPayload op = offer.getOfferPayload();
         OfferJson offr = new OfferJson();
         boolean fiat = offer.getPrice().getMonetary() instanceof Fiat;
@@ -90,14 +90,6 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         offr.money.price = Double.parseDouble(formatter.formatPrice(offer.getPrice()));
         if(!fiat) offr.money.price = Double.parseDouble(reciprocal(String.valueOf(offr.money.price)));
         offr.money.volume = Double.parseDouble(formatter.formatVolume(offer.getVolume()));
-        offr.fees.buyerSecurityDeposit = Double.parseDouble(offer.getBuyerSecurityDeposit().toPlainString());
-        offr.fees.buyerPercent = formatter.formatToPercentWithSymbol(offr.fees.buyerSecurityDeposit/offr.money.amount);
-        offr.fees.sellerSecurityDeposit = Double.parseDouble(offer.getSellerSecurityDeposit().toPlainString());
-        offr.fees.sellerPercent = formatter.formatToPercentWithSymbol(offr.fees.sellerSecurityDeposit/offr.money.amount);
-        offr.fees.minerFee = Double.parseDouble(getTxFee(offer).toPlainString());
-        offr.fees.minerPercent = formatter.formatToPercentWithSymbol(offr.fees.minerFee/offr.money.amount);
-        offr.fees.transactionFee = Double.parseDouble(offer.getMakerFee().toPlainString());
-        offr.fees.transactionPercent = formatter.formatToPercentWithSymbol(offr.fees.transactionFee/offr.money.amount);
         offr.isMyOffer = offer.isMyOffer(keyRing);
         offr.buyerSecurityDeposit = offer.getBuyerSecurityDeposit().toPlainString();
         offr.makerFee = offer.getMakerFee().toPlainString();
@@ -105,6 +97,22 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         offr.error = offer.getErrorMessage();
 
         return offr;
+    }
+
+    private FeesJson FeesMap(Offer offer) throws ExecutionException, InterruptedException {
+        FeesJson fees = new FeesJson();
+        OfferJson offr = Map(offer);
+
+        fees.buyerSecurityDeposit = Double.parseDouble(offer.getBuyerSecurityDeposit().toPlainString());
+        fees.buyerPercent = formatter.formatToPercentWithSymbol(fees.buyerSecurityDeposit/offr.money.amount);
+        fees.sellerSecurityDeposit = Double.parseDouble(offer.getSellerSecurityDeposit().toPlainString());
+        fees.sellerPercent = formatter.formatToPercentWithSymbol(fees.sellerSecurityDeposit/offr.money.amount);
+        fees.minerFee = Double.parseDouble(getTxFee(offer).toPlainString());
+        fees.minerPercent = formatter.formatToPercentWithSymbol(fees.minerFee/offr.money.amount);
+        fees.transactionFee = Double.parseDouble(offer.getMakerFee().toPlainString());
+        fees.transactionPercent = formatter.formatToPercentWithSymbol(fees.transactionFee/offr.money.amount);
+
+        return fees;
     }
 
     @RequestMapping(value = "/list", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
@@ -118,17 +126,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
 
         List<OfferJson> list = offerBookService.getOffers().stream().filter(
             offer->currency == null || offer.getCurrencyCode().equals(currency)
-        ).map((offer)->{
-            try {
-                return Map(offer);
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-                return new OfferJson();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                return new OfferJson();
-            }
-        }).collect(toList());
+        ).map((offer)-> Map(offer)).collect(toList());
         return list;
     }
 
@@ -143,20 +141,36 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
 
         List<OfferJson> list = offerBookService.getOffers().stream().filter(
                 offer->offer.getId().equals(offerId)
-        ).map((offer)->{
-            try {
-                return Map(offer);
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-                return new OfferJson();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                return new OfferJson();
-            }
-        }).collect(toList());
+        ).map(this::Map).collect(toList());
 
         if(list.isEmpty())
             throw new error.NotFound();
+
+        return list.get(0);
+    }
+
+    @RequestMapping(value = "/fees", method= RequestMethod.GET, produces = APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Get fees for an offer")
+    public FeesJson getFees(
+            @ApiParam(value = "The offer id", required=true)
+            @RequestParam(value = "offerId")
+                    String offerId
+    ) throws Exception {
+        checkErrors();
+
+        List<FeesJson> list = offerBookService.getOffers().stream().filter(
+                offer->offer.getId().equals(offerId)
+        ).map((offer)->{
+            try {
+                return FeesMap(offer);
+            } catch (ExecutionException e) {
+                return new FeesJson();
+            } catch (InterruptedException e) {
+                return new FeesJson();
+            }
+        }).collect(toList());
+
+        if(list.isEmpty()) throw new error.NotFound();
 
         return list.get(0);
     }
