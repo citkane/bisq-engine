@@ -2,6 +2,7 @@ package io.bisq.engine.app.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.bisq.common.UserThread;
 import io.bisq.common.locale.*;
 import io.bisq.core.payment.*;
 import io.bisq.core.payment.payload.PaymentAccountPayload;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.MimeTypeUtils.*;
@@ -112,17 +114,21 @@ public class AccountApi extends ApiData {
 
         Message message = new Message();
 
-        PaymentAccount account = user.getPaymentAccount(id);
-        if(account != null){
-            user.removePaymentAccount(account);
-            message.success = true;
-            message.message = "Account \""+id+"\" was removed.";
-        }else{
-            message.success = false;
-            message.message = "Account \""+id+"\" was not found.";
-        }
+        CompletableFuture<Message> promise = new CompletableFuture<>();
+        UserThread.execute(()-> {
+            PaymentAccount account = user.getPaymentAccount(id);
+            if (account != null) {
+                user.removePaymentAccount(account);
+                message.success = true;
+                message.message = "Account \"" + id + "\" was removed.";
+            } else {
+                message.success = false;
+                message.message = "Account \"" + id + "\" was not found.";
+            }
+            promise.complete(message);
+        });
 
-        return message;
+        return promise.get();
     }
 
 

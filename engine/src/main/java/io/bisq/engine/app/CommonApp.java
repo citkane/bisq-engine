@@ -135,9 +135,11 @@ public class CommonApp extends Application{
         if(Args.gui){
             UserThread.setExecutor(Platform::runLater);
             UserThread.setTimerClass(UITimer.class);
+
         }else{
             UserThread.setExecutor((Runnable foo)->BisqEngine.execute(foo));
         }
+
 
         shutDownHandler = this::stop;
 

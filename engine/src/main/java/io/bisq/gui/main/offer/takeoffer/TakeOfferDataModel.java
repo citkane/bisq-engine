@@ -83,7 +83,7 @@ class TakeOfferDataModel extends ActivatableDataModel {
     private final AccountAgeWitnessService accountAgeWitnessService;
     private final BSFormatter formatter;
 
-    protected Coin txFeeFromFeeService;
+    private Coin txFeeFromFeeService;
     private Coin securityDeposit;
     // Coin feeFromFundingTx = Coin.NEGATIVE_SATOSHI;
 
@@ -107,12 +107,12 @@ class TakeOfferDataModel extends ActivatableDataModel {
     private Notification walletFundedNotification;
     Price tradePrice;
     // 260 kb is size of typical trade fee tx with 1 input but trade tx (deposit and payout) are larger so we adjust to 320
-    protected int feeTxSize = 320;
+    private int feeTxSize = 320;
     private int feeTxSizeEstimationRecursionCounter;
     private boolean freezeFee;
-    protected Coin txFeePerByteFromFeeService;
+    private Coin txFeePerByteFromFeeService;
 
-    final Message message = new Message();
+    final protected Message message = new Message();
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Constructor, lifecycle
@@ -444,8 +444,6 @@ class TakeOfferDataModel extends ActivatableDataModel {
         if (!isWalletFunded.get()) {
             this.useSavingsWallet = false;
             updateBalance();
-        }else{
-            System.out.println("=============================Wallet is funded================================");
         }
     }
 
@@ -480,17 +478,11 @@ class TakeOfferDataModel extends ActivatableDataModel {
     }
 
     boolean isTakerFeeValid() {
-        System.out.println("getPayFeeInBtc: "+preferences.getPayFeeInBtc()+"+++++++++++++++++");
         return preferences.getPayFeeInBtc() || isBsqForFeeAvailable();
     }
 
     boolean isBsqForFeeAvailable() {
         final Coin takerFee = getTakerFee(false);
-        System.out.println("+++++++++++"+BisqEnvironment.isBaseCurrencySupportingBsq()+"+++++++++++++++++");
-        System.out.println("--------"+(takerFee != null)+"----------");
-        System.out.println("+++++++++++"+(bsqWalletService.getAvailableBalance() != null)+"+++++++++++++++++");
-        System.out.println("--------"+!bsqWalletService.getAvailableBalance().subtract(takerFee).isNegative()+"----------");
-        System.out.println("--------"+bsqWalletService.getAvailableBalance().toFriendlyString()+"----------");
         return BisqEnvironment.isBaseCurrencySupportingBsq() &&
                 takerFee != null &&
                 bsqWalletService.getAvailableBalance() != null &&
@@ -607,7 +599,7 @@ class TakeOfferDataModel extends ActivatableDataModel {
         isWalletFunded.set(isBalanceSufficient(balance.get()));
         //noinspection ConstantConditions,ConstantConditions
         if (totalToPayAsCoin.get() != null && isWalletFunded.get() && walletFundedNotification == null && !DevEnv.DEV_MODE) {
-            if(Args.gui){
+            if(Args.gui) {
                 walletFundedNotification = new Notification()
                         .headLine(Res.get("notification.walletUpdate.headline"))
                         .notification(Res.get("notification.walletUpdate.msg", formatter.formatCoinWithCode(totalToPayAsCoin.get())))
@@ -615,7 +607,6 @@ class TakeOfferDataModel extends ActivatableDataModel {
 
                 walletFundedNotification.show();
             }
-            System.out.println("-----------------------"+Res.get("notification.walletUpdate.msg", formatter.formatCoinWithCode(totalToPayAsCoin.get()))+"-------------------------------------------");
             message.message = Res.get("notification.walletUpdate.msg", formatter.formatCoinWithCode(totalToPayAsCoin.get()));
         }
     }
@@ -637,7 +628,7 @@ class TakeOfferDataModel extends ActivatableDataModel {
         return (txSize + 320) / 2;
     }
 
-    protected Coin getTxFeeBySize(int sizeInBytes) {
+    private Coin getTxFeeBySize(int sizeInBytes) {
         return txFeePerByteFromFeeService.multiply(getAverageSize(sizeInBytes));
     }
 

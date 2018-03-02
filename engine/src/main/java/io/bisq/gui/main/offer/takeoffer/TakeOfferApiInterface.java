@@ -23,11 +23,12 @@ public interface TakeOfferApiInterface {
         TakeOfferDataModel take = injector.getInstance(TakeOfferDataModel.class);
 
         CompletableFuture<Coin> promise = new CompletableFuture<>();
-        feeService.requestFees(()->{
-            take.txFeePerByteFromFeeService = feeService.getTxFeePerByte();
-            take.txFeeFromFeeService = take.getTxFeeBySize(take.feeTxSize);
+        UserThread.execute(()-> {
+            take.initWithData(offer);
             promise.complete(take.getTotalTxFee());
-        },null);
+            take.deactivate();
+            take.onClose();
+        });
 
         return promise.get();
     }
@@ -37,7 +38,7 @@ public interface TakeOfferApiInterface {
 
         TakeOfferDataModel take = injector.getInstance(TakeOfferDataModel.class);
 
-        Message message = new Message();
+        final Message message = new Message();
         Offer offer;
         PaymentAccount account;
 
@@ -87,49 +88,63 @@ public interface TakeOfferApiInterface {
 
         CompletableFuture<Message> promise = new CompletableFuture<>();
         UserThread.execute(()-> {
+
             take.initWithData(offer);
             take.onPaymentAccountSelected(account);
             take.applyAmount(amount);
+            take.onShowPayFundsScreen();
             take.fundFromSavingsWallet();
-
 
             message.success = false;
 
             if(!take.hasAcceptedArbitrators()){
                 message.message = "No accepted arbitrators found";
+                take.onClose();
+                take.deactivate();
                 promise.complete(message);
                 return;
             }
             if(!take.isMinAmountLessOrEqualAmount()){
                 message.message = "Amount is less than the acceptable minimum";
+                take.onClose();
+                take.deactivate();
                 promise.complete(message);
                 return;
             }
             if(take.isAmountLargerThanOfferAmount()){
                 message.message = "Amount is larger than the offer amount";
+                take.onClose();
+                take.deactivate();
                 promise.complete(message);
                 return;
             }
             if(take.wouldCreateDustForMaker()){
                 message.message = "Trade would create dust for the maker";
+                take.onClose();
+                take.deactivate();
                 promise.complete(message);
                 return;
             }
             if(!take.isTakerFeeValid()){
                 message.message = "Taker fee is not valid";
+                take.onClose();
+                take.deactivate();
                 promise.complete(message);
                 return;
             }
+
             take.onTakeOffer((trade) -> {
                 if(take.message.success == null){
                     take.message.success = true;
                     take.message.message = "You successfully accepted the offer";
+                }else{
+                    take.onClose();
                 }
+                take.deactivate();
                 promise.complete(take.message);
+
             });
-            if(take.message.success == false){
-                promise.complete(take.message);
-            }
+
         });
 
         return promise.get();

@@ -5,6 +5,7 @@
  */
 package io.bisq.engine.app.api;
 
+import io.bisq.common.UserThread;
 import io.bisq.core.offer.Offer;
 import io.bisq.core.offer.OfferPayload;
 import io.bisq.core.offer.OpenOffer;
@@ -18,11 +19,13 @@ import io.swagger.annotations.ApiParam;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.MimeTypeUtils.*;
 
+import org.bitcoinj.core.Coin;
 import org.bitcoinj.utils.Fiat;
 import org.springframework.web.bind.annotation.*;
 
@@ -99,7 +102,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         return offr;
     }
 
-    private FeesJson FeesMap(Offer offer) throws ExecutionException, InterruptedException {
+    private FeesJson FeesMap(Offer offer, Coin txFee){
         FeesJson fees = new FeesJson();
         OfferJson offr = Map(offer);
 
@@ -107,7 +110,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         fees.buyerPercent = formatter.formatToPercentWithSymbol(fees.buyerSecurityDeposit/offr.money.amount);
         fees.sellerSecurityDeposit = Double.parseDouble(offer.getSellerSecurityDeposit().toPlainString());
         fees.sellerPercent = formatter.formatToPercentWithSymbol(fees.sellerSecurityDeposit/offr.money.amount);
-        fees.minerFee = Double.parseDouble(getTxFee(offer).toPlainString());
+        fees.minerFee = Double.parseDouble(txFee.toPlainString());
         fees.minerPercent = formatter.formatToPercentWithSymbol(fees.minerFee/offr.money.amount);
         fees.transactionFee = Double.parseDouble(offer.getMakerFee().toPlainString());
         fees.transactionPercent = formatter.formatToPercentWithSymbol(fees.transactionFee/offr.money.amount);
@@ -159,19 +162,17 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
         checkErrors();
 
         List<FeesJson> list = offerBookService.getOffers().stream().filter(
-                offer->offer.getId().equals(offerId)
-        ).map((offer)->{
+                offer -> offer.getId().equals(offerId)
+        ).map((offer) -> {
             try {
-                return FeesMap(offer);
-            } catch (ExecutionException e) {
-                return new FeesJson();
-            } catch (InterruptedException e) {
-                return new FeesJson();
+                Coin txFee = getTxFee(offer);
+                return FeesMap(offer,txFee);
+            } catch (ExecutionException | InterruptedException e) {
+                return null;
             }
         }).collect(toList());
 
-        if(list.isEmpty()) throw new error.NotFound();
-
+        if (list.isEmpty()) throw new error.ServerError();
         return list.get(0);
     }
 
@@ -192,9 +193,7 @@ public class OfferApi extends ApiData implements CreateOfferApiInterface, TakeOf
 
     ) throws Exception {
         checkErrors();
-
-        return takeOffer(offerId,accountId,Amount);
-
+        return takeOffer(offerId, accountId, Amount);
     }
 
 

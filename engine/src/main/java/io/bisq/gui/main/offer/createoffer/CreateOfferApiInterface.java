@@ -50,8 +50,6 @@ public interface CreateOfferApiInterface {
         if(minAmountTemp  == 0) minAmountTemp  = amount;
         final long minAmount = minAmountTemp;
 
-        System.out.println("--------------------------"+minAmount+"-----------------------------------------");
-
         OfferPayload.Direction dir = direction.equals("BUY")?OfferPayload.Direction.BUY:OfferPayload.Direction.SELL;
 
         if(paymentAccount.getTradeCurrencies().isEmpty()){
@@ -70,13 +68,15 @@ public interface CreateOfferApiInterface {
             String foo = reciprocal(String.valueOf(tPrice));
             tPrice = new BigDecimal(foo);
         }
+
         BigDecimal price = tPrice;
+        TradeCurrency tradeCurrency = paymentAccount.getSelectedTradeCurrency();
+        String priceCode = paymentAccount.getSelectedTradeCurrency().getCode();
 
         CompletableFuture<Message> promise = new CompletableFuture<>();
         UserThread.execute(()->{
 
-            TradeCurrency tradeCurrency = paymentAccount.getSelectedTradeCurrency();
-            String priceCode = paymentAccount.getSelectedTradeCurrency().getCode();
+
 
             createOffer.setUseMarketBasedPrice(priceModel.equals("PERCENTAGE"));
             createOffer.setAmount(Coin.valueOf(amount));
@@ -110,7 +110,7 @@ public interface CreateOfferApiInterface {
             }
 
             preferences.setSelectedPaymentAccountForCreateOffer(paymentAccount);
-            createOffer.initWithData(dir, tradeCurrency);
+            createOffer.initWithData(dir,tradeCurrency);
             Offer offer = createOffer.createAndGetOffer();
 
 
@@ -118,6 +118,7 @@ public interface CreateOfferApiInterface {
             if(offer.getAmount().compareTo(offer.getPaymentMethod().getMaxTradeLimitAsCoin(offer.getCurrencyCode())) > 0){
                 message.success = false;
                 message.message = "Amount is larger than " + offer.getPaymentMethod().getMaxTradeLimitAsCoin(offer.getCurrencyCode()).toFriendlyString();
+                createOffer.deactivate();
                 promise.complete(message);
                 return;
             }
@@ -127,12 +128,12 @@ public interface CreateOfferApiInterface {
             if (rootView.AvailableBalance.isLessThan(fee)){
                 message.success = false;
                 message.message = "Insufficient funds for offer in wallet";
+                createOffer.deactivate();
                 promise.complete(message);
                 return;
             }
             message.data = offer;
             if(commit){
-                checkNotNull(createOffer.getMakerFee(), "makerFee must not be null");
                 createOffer.estimateTxSize();
                 Coin reservedFundsForOffer = createOffer.getSecurityDeposit();
                 if (!createOffer.isBuyOffer())
@@ -143,16 +144,19 @@ public interface CreateOfferApiInterface {
                 openOfferManager.placeOffer(offer, finalReservedFundsForOffer,true,(mess)->{
                     message.success = true;
                     message.message = "Offer was successfully placed";
+                    createOffer.deactivate();
                     promise.complete(message);
                 },(err)->{
                     message.success = false;
                     message.message = err;
+                    createOffer.deactivate();
                     promise.complete(message);
                 });
 
             }else{
                 message.success = true;
                 message.message = "Offer is valid but NOT committed";
+                createOffer.deactivate();
                 promise.complete(message);
             }
         });
