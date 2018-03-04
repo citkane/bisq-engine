@@ -358,9 +358,11 @@
             </exclusions>
         </dependency>
         <dependency>
+
             <groupId>com.github.citkane</groupId>
             <artifactId>bisq-business</artifactId>
-            <version>v0.0.1</version>
+            <version>v0.0.2</version>
+
         </dependency>
 
         <dependency>
