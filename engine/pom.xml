@@ -190,7 +190,11 @@
                                         <urn>com.github.citkane.exchange:core:v0.6.5-engine:jar:null:compile:8d449626a26a61dfcdb1aa71b314e964e1b7e326</urn>
                                         <urn>com.github.citkane.exchange:gui:v0.6.5-engine:jar:null:compile:d778aed2e8e533a2b7c9dfa30cee714b78a483c8</urn>
                                         <urn>com.github.citkane.exchange:network:v0.6.5-engine:jar:null:compile:ff97c49fbb3f1b3b891e05770af27ca49721ff39</urn>
+
+                                        <!-- TODO come back and fix this once initial dev has settled
                                         <urn>com.github.citkane:bisq-business:v0.0.0:jar:null:compile:3d2308ab93911d096889b600f224fb1f87adc1b8</urn>
+                                        -->
+
                                         <urn>com.github.ravn:jsocks:567e1cd:jar:null:compile:c197136320087c8d550ce571467a5c1fa6a3a305</urn>
                                         <urn>com.google.code.findbugs:jsr305:3.0.1:jar:null:compile:f7be08ec23c21485b9b5a1cf1654c2ec8c58168d</urn>
                                         <urn>com.google.code.gson:gson:2.7:jar:null:compile:751f548c85fa49f330cecbb1875893f971b33c4e</urn>
@@ -356,7 +360,7 @@
         <dependency>
             <groupId>com.github.citkane</groupId>
             <artifactId>bisq-business</artifactId>
-            <version>v0.0.0</version>
+            <version>v0.0.1</version>
         </dependency>
 
         <dependency>
