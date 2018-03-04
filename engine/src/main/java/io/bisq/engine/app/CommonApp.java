@@ -21,6 +21,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import io.bisq.business.Data;
 import io.bisq.common.CommonOptionKeys;
 import io.bisq.common.UserThread;
 import io.bisq.common.app.Capabilities;
@@ -53,8 +54,8 @@ import io.bisq.core.trade.closed.ClosedTradableManager;
 import io.bisq.core.trade.failed.FailedTradesManager;
 import io.bisq.core.user.Preferences;
 import io.bisq.core.user.User;
+import io.bisq.engine.EngineBoot;
 import io.bisq.engine.HeadlessConstructor;
-import io.bisq.engine.app.api.ApiData;
 import io.bisq.engine.app.util.Args;
 import io.bisq.gui.Navigation;
 import io.bisq.gui.SystemTray;
@@ -197,7 +198,10 @@ public class CommonApp extends Application{
             engineAppModule = new EngineAppModule(bisqEnvironment, primaryStage);
             injector = Guice.createInjector(engineAppModule);
             if(Args.gui) injector.getInstance(InjectorViewFactory.class).setInjector(injector);
-            if(Args.http) ApiData.inject(injector);
+
+            Data.inject(injector,()-> {
+                injector.getInstance(EngineBoot.class).checkIfLocalHostNodeIsRunning();
+            });
 
             // All classes which are persisting objects need to be added here
             // Maintain order!

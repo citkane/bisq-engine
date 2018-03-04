@@ -163,13 +163,15 @@
                                         <urn>aopalliance:aopalliance:1.0:jar:null:compile:0235ba8b489512805ac13a8f9ea77a1ca5ebe3e8</urn>
                                         <urn>ch.qos.logback:logback-classic:1.1.10:jar:null:compile:56d094f1fd93c2578e8138a83bb036c13abe5898</urn>
                                         <urn>ch.qos.logback:logback-core:1.1.10:jar:null:compile:ee683b13d3ca1cdc876cdf8a341c81d04976e1d6</urn>
-                                        <!-- enforcer cannot find these??
+
+                                        <!-- Digestor can't find cedricwalter artifacts. Is this a problem?
                                         <urn>com.cedricwalter:tor-binary-geoip:7.0.11:jar:null:compile:7ca65453c85d8ddf78139e19458f3cb4e1778746</urn>
                                         <urn>com.cedricwalter:tor-binary-linux32:7.0.11:jar:null:compile:048941334e0d53a21b99b1861c98a857a113be99</urn>
                                         <urn>com.cedricwalter:tor-binary-linux64:7.0.11:jar:null:compile:3d2efc59c99408ae78dd7bb09cc5d7479a0ac917</urn>
                                         <urn>com.cedricwalter:tor-binary-macos:7.0.11:jar:null:compile:1e313e57f686fc640dea69a749902c602aaff6bf</urn>
                                         <urn>com.cedricwalter:tor-binary-windows:7.0.11:jar:null:compile:bbdac7061de63408bf9014906653ce7ea05c6aca</urn>
                                         -->
+
                                         <urn>com.fasterxml.jackson.core:jackson-annotations:2.8.10:jar:null:compile:5e924646d6f893bc9036939c5f2b4ecaee85e5da</urn>
                                         <urn>com.fasterxml.jackson.core:jackson-core:2.8.10:jar:null:compile:eb21a035c66ad307e66ec8fce37f5d50fd62d039</urn>
                                         <urn>com.fasterxml.jackson.core:jackson-databind:2.8.10:jar:null:compile:f7b83cb2bc4b88d53961e749e1ad32f49ef017b7</urn>
@@ -182,11 +184,13 @@
                                         <urn>com.github.bisq-network.btcd-cli4j:btcd-cli4j-core:29f99be:jar:null:compile:9134ca17efccc01f5d93dba23937273ab5551bd3</urn>
                                         <urn>com.github.bisq-network.btcd-cli4j:btcd-cli4j-daemon:29f99be:jar:null:compile:19f24b6d1d846cc7f4aecce1660fee1e6bbb623e</urn>
                                         <urn>com.github.bisq-network.libdohj:libdohj-core:01ae7770:jar:null:compile:26bee9d73814e0209a6fb282ebd0bdf7b63cfd3c</urn>
+                                        <urn>com.github.citkane.bisq-business:business:v0.6.5-engine:jar:null:compile:4d1e399391a8888df1812bd73d96e3219dfd4054</urn>
                                         <urn>com.github.citkane.exchange:common:v0.6.5-engine:jar:null:compile:6b2f2fd2bc3a4128a5c2fbc5a5648b02c83931e4</urn>
                                         <urn>com.github.citkane.exchange:consensus:v0.6.5-engine:jar:null:compile:0abe429c656d4b52180190d4e203b592e9716c4f</urn>
                                         <urn>com.github.citkane.exchange:core:v0.6.5-engine:jar:null:compile:8d449626a26a61dfcdb1aa71b314e964e1b7e326</urn>
                                         <urn>com.github.citkane.exchange:gui:v0.6.5-engine:jar:null:compile:d778aed2e8e533a2b7c9dfa30cee714b78a483c8</urn>
                                         <urn>com.github.citkane.exchange:network:v0.6.5-engine:jar:null:compile:ff97c49fbb3f1b3b891e05770af27ca49721ff39</urn>
+                                        <urn>com.github.citkane:bisq-business:v0.0.0:jar:null:compile:3d2308ab93911d096889b600f224fb1f87adc1b8</urn>
                                         <urn>com.github.ravn:jsocks:567e1cd:jar:null:compile:c197136320087c8d550ce571467a5c1fa6a3a305</urn>
                                         <urn>com.google.code.findbugs:jsr305:3.0.1:jar:null:compile:f7be08ec23c21485b9b5a1cf1654c2ec8c58168d</urn>
                                         <urn>com.google.code.gson:gson:2.7:jar:null:compile:751f548c85fa49f330cecbb1875893f971b33c4e</urn>
@@ -349,6 +353,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>com.github.citkane</groupId>
+            <artifactId>bisq-business</artifactId>
+            <version>v0.0.0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -426,29 +435,6 @@
             <scope>compile</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.controlsfx</groupId>
-            <artifactId>controlsfx</artifactId>
-            <version>8.0.6_20</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.glxn</groupId>
-            <artifactId>qrgen</artifactId>
-            <version>1.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>de.jensd</groupId>
-            <artifactId>fontawesomefx</artifactId>
-            <version>8.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.googlecode.jcsv</groupId>
-            <artifactId>jcsv</artifactId>
-            <version>1.4.0</version>
-        </dependency>
     </dependencies>
 
 </project>
