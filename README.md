@@ -1,6 +1,6 @@
 # bisq-engine
 
-**NB!!! This is NOT production ready. Please do not attempt to use this is MainNet**
+**NB!!! This is NOT production ready. Please do not attempt to use this on MainNet**
 
 Base component for a [Bisq](https://github.com/bisq-network/exchange) MVC API architecture.
 

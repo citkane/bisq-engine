@@ -112,7 +112,9 @@ public class EngineAppMain extends BisqExecutable{
         }else{
             System.out.println("Starting in HEADLESS mode");
         }
+        if (BisqEnvironment.getBaseCurrencyNetwork().isMainnet()) return;
         System.out.println();
+
 
 
         // need to call that before bisqAppMain().execute(args)
