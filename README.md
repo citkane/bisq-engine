@@ -1,5 +1,7 @@
 # bisq-engine
 
+**NB!!! This is NOT production ready. Please do not attempt to use this is MainNet**
+
 Base component for a [Bisq](https://github.com/bisq-network/exchange) MVC API architecture.
 
 This bootstraps the core application optionally with the GUI, or headless without launching the javaFX application. It plumbs the Guice injector to an API controller/interface space in a GUI agnostic way.
