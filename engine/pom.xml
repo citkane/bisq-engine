@@ -361,7 +361,7 @@
 
             <groupId>com.github.citkane</groupId>
             <artifactId>bisq-business</artifactId>
-            <version>v0.0.3</version>
+            <version>v0.0.4</version>
 
         </dependency>
 
